@@ -1,4 +1,4 @@
-![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
+[Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 
 # Activation Steering
 
@@ -16,12 +16,51 @@
 
 This is a general-purpose activation steering library to (1) extract vectors and (2) steer model behavior. We release this library alongside our recent paper on [*Programming Refusal with Conditional Activation Steering*](https://arxiv.org/abs/2409.05907) to provide an intuitive toolchain for activation steering efforts.
 
-## Installation
+
+## Instructions for Nova
+
+You can use interactive mode to set up the initial environment
+```bash
+srun --nodes=1 --ntasks=1 --cpus-per-task=4 --mem=16G --time=01:00:00 --gres=gpu:1 --pty bash
+```
+
+```bash
+python --version   #to check python version
+python -m venv myenv
+source myenv/bin/activate
+pip install -r requirements.txt
+```
+
+### Installation
 ```bash
 git clone https://github.com/IBM/activation-steering
-
+cd activation-steering
 pip install -e activation-steering
 ```
+
+### Running initial experiments-
+
+#### Getting the tssb-3m dataset 
+[Dataset](https://github.com/cedricrupb/TSSB3M?tab=readme-ov-file#datasets)
+
+I have a filtered version of the dataset with just the following bugs:
+
+- `MORE_SPECIFIC_IF`  
+- `ADD_METHOD_CALL`  
+- `ADD_FUNCTION_AROUND_EXPRESSION`  
+- `SAME_FUNCTION_MORE_ARGS`  
+- `SAME_FUNCTION_LESS_ARGS`  
+- `CHANGE_BINARY_OPERATOR`  
+- `CHANGE_COMPARISON_OPERATOR`  
+- `SINGLE_TOKEN`
+
+The filtered dataset is located at docs/demo-data as filtered-0, filtered-1, filtered-2. filtered-0 was used to create the apr questions and contrastive pairs (mutually exclusive sets) using apr.sh. No need to re-run. 
+
+#### To run initial experiment
+
+
+#### To modify 
+
 
 ## Activation Steering
 Activation steering is a technique for influencing the behavior of language models by modifying their internal activations during inference. This library provides tools for:

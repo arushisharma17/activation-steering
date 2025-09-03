@@ -40,4 +40,4 @@ refusal_behavior_vector = SteeringVector.train(
 )
 
 # 5. Let's save this behavior vector for later use
-refusal_behavior_vector.save('refusal_behavior_vector-qwen2')
+refusal_behavior_vector.save('refusal_behavior_vector')

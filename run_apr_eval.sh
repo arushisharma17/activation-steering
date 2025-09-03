@@ -22,15 +22,16 @@ source myenv/bin/activate
 export CUDA_VISIBLE_DEVICES=0
 cd activation-steering-orig/
 
+
 python demo-extract.py
 
 python ab_apr_eval.py \
   --pairs_path /lustre/hdd/LAS/jannesar-lab/arushi/tssb_data_3M/filtered-7.jsonl \
   --start 0 --limit 100 \
   --fewshot_k 3 \
-  --model_id Qwen/Qwen2.5-Coder-7B-Instruct \
+  --model_id meta-llama/CodeLlama-7b-Instruct-hf \
   --compare \
-  --vector_path refusal_behavior_vector-qwen2 \
+  --vector_path refusal_behavior_vector \
   --strength 2.0 \
-  --layers 24,25,26,27,28
+  --layers 27,28,29,30,31
 
