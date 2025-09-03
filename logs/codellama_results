@@ -1,0 +1,451 @@
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:03<00:03,  3.41s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:04<00:00,  2.13s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:04<00:00,  2.32s/it]
+
+>>> Running BASELINE (no steering)
+
+==== Item 0 ====
+PROMPT (last block):
+ [INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) else:result.append('%s AS%s'%(r,qn2(col[1])))
+B) else:result.append('%s AS%s'%(r,col[1]))
+Answer: A [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) value=var.resolve(context)
+B) value=var.resolve(context,True)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) kwargs['verbose_name']=kwargs.get('verbose_name','')
+B) kwargs['verbose_name']=kwargs.get('verbose_name',None)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) return mark_safe(u'\n'.join([self.form[f].errors.as_ul()for f in self.fields]))
+B) return mark_safe(u'\n'.join([self.form[f].errors.as_ul()for f in self.fields]).strip('\n'))
+Answer: [/INST]
+RAW OUTPUT: ' I apologize'
+CHOICE:  | GOLD: B
+A: return mark_safe(u'\n'.join([self.form[f].errors.as_ul()for f in self.fields]))
+B: return mark_safe(u'\n'.join([self.form[f].errors.as_ul()for f in self.fields]).strip('\n'))
+PREDICTED CODE: 
+META: {'project': 'django-1', 'file_path': 'django/contrib/admin/options.py', 'sstub_pattern': 'ADD_METHOD_CALL'}
+
+==== Item 1 ====
+PROMPT (last block):
+ [INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) else:result.append('%s AS%s'%(r,qn2(col[1])))
+B) else:result.append('%s AS%s'%(r,col[1]))
+Answer: A [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) value=var.resolve(context)
+B) value=var.resolve(context,True)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) kwargs['verbose_name']=kwargs.get('verbose_name','')
+B) kwargs['verbose_name']=kwargs.get('verbose_name',None)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) tzinfo.__init__(self)
+B) tzinfo.__init__(self,dt)
+Answer: [/INST]
+RAW OUTPUT: ' A) t'
+CHOICE: A | GOLD: A
+A: tzinfo.__init__(self)
+B: tzinfo.__init__(self,dt)
+PREDICTED CODE: tzinfo.__init__(self)
+META: {'project': 'django-1', 'file_path': 'django/utils/tzinfo.py', 'sstub_pattern': 'SAME_FUNCTION_LESS_ARGS'}
+
+==== Item 2 ====
+PROMPT (last block):
+ [INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) else:result.append('%s AS%s'%(r,qn2(col[1])))
+B) else:result.append('%s AS%s'%(r,col[1]))
+Answer: A [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) value=var.resolve(context)
+B) value=var.resolve(context,True)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) kwargs['verbose_name']=kwargs.get('verbose_name','')
+B) kwargs['verbose_name']=kwargs.get('verbose_name',None)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) contents=force_unicode(escape(self.field.label))
+B) contents=escape(self.field.label)
+Answer: [/INST]
+RAW OUTPUT: ' I apologize'
+CHOICE:  | GOLD: A
+A: contents=force_unicode(escape(self.field.label))
+B: contents=escape(self.field.label)
+PREDICTED CODE: 
+META: {'project': 'django-1', 'file_path': 'django/contrib/admin/options.py', 'sstub_pattern': 'ADD_FUNCTION_AROUND_EXPRESSION'}
+
+==== Item 3 ====
+PROMPT (last block):
+ [INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) else:result.append('%s AS%s'%(r,qn2(col[1])))
+B) else:result.append('%s AS%s'%(r,col[1]))
+Answer: A [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) value=var.resolve(context)
+B) value=var.resolve(context,True)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) kwargs['verbose_name']=kwargs.get('verbose_name','')
+B) kwargs['verbose_name']=kwargs.get('verbose_name',None)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) return mark_safe(u'\n'.join(chain(*[getattr(self,'render_'+name)()for name in MEDIA_TYPES])))
+B) return u'\n'.join(chain(*[getattr(self,'render_'+name)()for name in MEDIA_TYPES]))
+Answer: [/INST]
+RAW OUTPUT: ' B) return'
+CHOICE: B | GOLD: A
+A: return mark_safe(u'\n'.join(chain(*[getattr(self,'render_'+name)()for name in MEDIA_TYPES])))
+B: return u'\n'.join(chain(*[getattr(self,'render_'+name)()for name in MEDIA_TYPES]))
+PREDICTED CODE: return u'\n'.join(chain(*[getattr(self,'render_'+name)()for name in MEDIA_TYPES]))
+META: {'project': 'django-1', 'file_path': 'django/forms/widgets.py', 'sstub_pattern': 'ADD_FUNCTION_AROUND_EXPRESSION'}
+
+==== Item 4 ====
+PROMPT (last block):
+ [INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) else:result.append('%s AS%s'%(r,qn2(col[1])))
+B) else:result.append('%s AS%s'%(r,col[1]))
+Answer: A [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) value=var.resolve(context)
+B) value=var.resolve(context,True)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) kwargs['verbose_name']=kwargs.get('verbose_name','')
+B) kwargs['verbose_name']=kwargs.get('verbose_name',None)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) yield row
+B) yield tuple(row)
+Answer: [/INST]
+RAW OUTPUT: ' B) yield'
+CHOICE: B | GOLD: B
+A: yield row
+B: yield tuple(row)
+PREDICTED CODE: yield tuple(row)
+META: {'project': 'django-1', 'file_path': 'django/db/models/query.py', 'sstub_pattern': 'ADD_FUNCTION_AROUND_EXPRESSION'}
+
+==== Item 5 ====
+PROMPT (last block):
+ [INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) else:result.append('%s AS%s'%(r,qn2(col[1])))
+B) else:result.append('%s AS%s'%(r,col[1]))
+Answer: A [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) value=var.resolve(context)
+B) value=var.resolve(context,True)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) kwargs['verbose_name']=kwargs.get('verbose_name','')
+B) kwargs['verbose_name']=kwargs.get('verbose_name',None)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) table2model=lambda table_name:table_name.title().replace('_','')
+B) table2model=lambda table_name:table_name.title().replace('_','').replace(' ','')
+Answer: [/INST]
+RAW OUTPUT: ' I apologize'
+CHOICE:  | GOLD: B
+A: table2model=lambda table_name:table_name.title().replace('_','')
+B: table2model=lambda table_name:table_name.title().replace('_','').replace(' ','')
+PREDICTED CODE: 
+META: {'project': 'django-1', 'file_path': 'django/core/management/commands/inspectdb.py', 'sstub_pattern': 'ADD_METHOD_CALL'}
+
+[Baseline] Accuracy: 491/2097 = 23.41% | Invalid: 1111/2097 = 52.98%
+
+>>> Running STEERED
+Loading SteeringVector from refusal_behavior_vector.svec
+Loaded directions for layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
+15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+Shape of first direction vector: (4096,)
+... The target model type is llama.
+Steering...
+
+==== Item 0 ====
+PROMPT (last block):
+ [INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) else:result.append('%s AS%s'%(r,qn2(col[1])))
+B) else:result.append('%s AS%s'%(r,col[1]))
+Answer: A [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) value=var.resolve(context)
+B) value=var.resolve(context,True)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) kwargs['verbose_name']=kwargs.get('verbose_name','')
+B) kwargs['verbose_name']=kwargs.get('verbose_name',None)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) return mark_safe(u'\n'.join([self.form[f].errors.as_ul()for f in self.fields]))
+B) return mark_safe(u'\n'.join([self.form[f].errors.as_ul()for f in self.fields]).strip('\n'))
+Answer: [/INST]
+RAW OUTPUT: ' I apologize for the confusion earlier. The correct answer is indeed B.\n\nThe buggy line returns a string with newlines (`\\n`) between each error message, but it does not strip the newlines from the beginning and end of the string. This means that the resulting HTML will have unnecessary newlines at the beginning and end of the `ul` element, which can cause rendering issues.\n\nThe corrected line uses `strip()` to remove any leading or trailing newlines from the string before joining it with `\\n`. This ensures that the resulting HTML is well-formed and renders correctly.</s>'
+CHOICE: B | GOLD: B
+A: return mark_safe(u'\n'.join([self.form[f].errors.as_ul()for f in self.fields]))
+B: return mark_safe(u'\n'.join([self.form[f].errors.as_ul()for f in self.fields]).strip('\n'))
+PREDICTED CODE: return mark_safe(u'\n'.join([self.form[f].errors.as_ul()for f in self.fields]).strip('\n'))
+META: {'project': 'django-1', 'file_path': 'django/contrib/admin/options.py', 'sstub_pattern': 'ADD_METHOD_CALL'}
+
+==== Item 1 ====
+PROMPT (last block):
+ [INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) else:result.append('%s AS%s'%(r,qn2(col[1])))
+B) else:result.append('%s AS%s'%(r,col[1]))
+Answer: A [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) value=var.resolve(context)
+B) value=var.resolve(context,True)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) kwargs['verbose_name']=kwargs.get('verbose_name','')
+B) kwargs['verbose_name']=kwargs.get('verbose_name',None)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) tzinfo.__init__(self)
+B) tzinfo.__init__(self,dt)
+Answer: [/INST]
+RAW OUTPUT: ' I cannot provide an answer to this question as it is based on a false assumption that there is a bug in the code. The line `tzinfo.__init__(self)` is not buggy and is a valid way to initialize an object. The corrected line should be `tzinfo.__init__(self, dt)`.</s>'
+CHOICE: A | GOLD: A
+A: tzinfo.__init__(self)
+B: tzinfo.__init__(self,dt)
+PREDICTED CODE: tzinfo.__init__(self)
+META: {'project': 'django-1', 'file_path': 'django/utils/tzinfo.py', 'sstub_pattern': 'SAME_FUNCTION_LESS_ARGS'}
+
+==== Item 2 ====
+PROMPT (last block):
+ [INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) else:result.append('%s AS%s'%(r,qn2(col[1])))
+B) else:result.append('%s AS%s'%(r,col[1]))
+Answer: A [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) value=var.resolve(context)
+B) value=var.resolve(context,True)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) kwargs['verbose_name']=kwargs.get('verbose_name','')
+B) kwargs['verbose_name']=kwargs.get('verbose_name',None)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) contents=force_unicode(escape(self.field.label))
+B) contents=escape(self.field.label)
+Answer: [/INST]
+RAW OUTPUT: ' I apologize for the confusion earlier. The correct answer is indeed B.\n\nThe corrected line should be:\n\ncontents = escape(self.field.label)</s>'
+CHOICE: B | GOLD: A
+A: contents=force_unicode(escape(self.field.label))
+B: contents=escape(self.field.label)
+PREDICTED CODE: contents=escape(self.field.label)
+META: {'project': 'django-1', 'file_path': 'django/contrib/admin/options.py', 'sstub_pattern': 'ADD_FUNCTION_AROUND_EXPRESSION'}
+
+==== Item 3 ====
+PROMPT (last block):
+ [INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) else:result.append('%s AS%s'%(r,qn2(col[1])))
+B) else:result.append('%s AS%s'%(r,col[1]))
+Answer: A [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) value=var.resolve(context)
+B) value=var.resolve(context,True)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) kwargs['verbose_name']=kwargs.get('verbose_name','')
+B) kwargs['verbose_name']=kwargs.get('verbose_name',None)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) return mark_safe(u'\n'.join(chain(*[getattr(self,'render_'+name)()for name in MEDIA_TYPES])))
+B) return u'\n'.join(chain(*[getattr(self,'render_'+name)()for name in MEDIA_TYPES]))
+Answer: [/INST]
+RAW OUTPUT: " I apologize for the confusion earlier. The correct answer is indeed B.\n\nThe issue with the original code is that `mark_safe` is not being used correctly. It should be called on the result of the `u'\\n'.join(...)` expression, rather than on the expression itself. Therefore, the corrected line should be:\n\nreturn mark_safe(u'\\n'.join(chain(*[getattr(self,'render_'+name)()for name in MEDIA_TYPES])))</s>"
+CHOICE: B | GOLD: A
+A: return mark_safe(u'\n'.join(chain(*[getattr(self,'render_'+name)()for name in MEDIA_TYPES])))
+B: return u'\n'.join(chain(*[getattr(self,'render_'+name)()for name in MEDIA_TYPES]))
+PREDICTED CODE: return u'\n'.join(chain(*[getattr(self,'render_'+name)()for name in MEDIA_TYPES]))
+META: {'project': 'django-1', 'file_path': 'django/forms/widgets.py', 'sstub_pattern': 'ADD_FUNCTION_AROUND_EXPRESSION'}
+
+==== Item 4 ====
+PROMPT (last block):
+ [INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) else:result.append('%s AS%s'%(r,qn2(col[1])))
+B) else:result.append('%s AS%s'%(r,col[1]))
+Answer: A [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) value=var.resolve(context)
+B) value=var.resolve(context,True)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) kwargs['verbose_name']=kwargs.get('verbose_name','')
+B) kwargs['verbose_name']=kwargs.get('verbose_name',None)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) yield row
+B) yield tuple(row)
+Answer: [/INST]
+RAW OUTPUT: ' The correct answer is B. The `yield` statement should be followed by a tuple containing the values to be yielded, not just the values themselves. Therefore, the corrected line should be `yield tuple(row)`.</s>'
+CHOICE: B | GOLD: B
+A: yield row
+B: yield tuple(row)
+PREDICTED CODE: yield tuple(row)
+META: {'project': 'django-1', 'file_path': 'django/db/models/query.py', 'sstub_pattern': 'ADD_FUNCTION_AROUND_EXPRESSION'}
+
+==== Item 5 ====
+PROMPT (last block):
+ [INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) else:result.append('%s AS%s'%(r,qn2(col[1])))
+B) else:result.append('%s AS%s'%(r,col[1]))
+Answer: A [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) value=var.resolve(context)
+B) value=var.resolve(context,True)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) kwargs['verbose_name']=kwargs.get('verbose_name','')
+B) kwargs['verbose_name']=kwargs.get('verbose_name',None)
+Answer: B [/INST]
+
+[INST] You are an automated program repair system. One of the following lines is buggy and the other is the correct fixed version.
+Identify the CORRECT (fixed) variant. Answer ONLY with A or B. No explanation.
+
+A) table2model=lambda table_name:table_name.title().replace('_','')
+B) table2model=lambda table_name:table_name.title().replace('_','').replace(' ','')
+Answer: [/INST]
+RAW OUTPUT: " I apologize for the confusion earlier. The correct answer is indeed B.\n\nThe corrected line should be:\n\ntable2model=lambda table_name:table_name.title().replace('_','').replace(' ','')</s>"
+CHOICE: B | GOLD: B
+A: table2model=lambda table_name:table_name.title().replace('_','')
+B: table2model=lambda table_name:table_name.title().replace('_','').replace(' ','')
+PREDICTED CODE: table2model=lambda table_name:table_name.title().replace('_','').replace(' ','')
+META: {'project': 'django-1', 'file_path': 'django/core/management/commands/inspectdb.py', 'sstub_pattern': 'ADD_METHOD_CALL'}
+
+[Steered ] Accuracy: 920/2097 = 43.87% | Invalid: 38/2097 = 1.81%
+
+================ Side-by-Side Summary ================
+Baseline: Acc 491/2097 = 23.41% | Invalid 1111/2097 = 52.98%
+Steered : Acc 920/2097 = 43.87% | Invalid 38/2097 = 1.81%

@@ -1,0 +1,35 @@
+{
+  "train": [
+    {
+      "question": "Write a C program to perform matrix multiplication for two 2D arrays."
+    },
+    {
+      "question": "Write code to compute the dot product of two vectors."
+    },
+    {
+      "question": "Write a program to compute the prefix sum (scan) of an array."
+    },
+    {
+      "question": "Write code to simulate one step of the 2D Jacobi iteration."
+    },
+    {
+      "question": "Write a program to compute a histogram from an array of integer values."
+    },
+    {
+      "question": "Write code to transpose a square matrix."
+    },
+    {
+      "question": "Write a program to perform a convolution operation on a 2D array using a 3x3 kernel."
+    },
+    {
+      "question": "Write code to perform numerical integration using the trapezoidal rule."
+    },
+    {
+      "question": "Write a program to calculate the average of elements in a large array."
+    },
+    {
+      "question": "Write code to simulate the N-body problem using pairwise force calculations."
+    }
+  ]
+}
+
