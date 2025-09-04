@@ -57,9 +57,9 @@ I have a filtered version of the dataset with just the following bugs:
 The filtered dataset is located at docs/demo-data as filtered-0, filtered-1, filtered-2. filtered-0 was used to create the apr questions and contrastive pairs (mutually exclusive sets) using apr.sh. No need to re-run. 
 
 #### To run initial experiment
-
-
-#### To modify 
+```bash
+sbatch run_apr_eval.sh
+```
 
 
 ## Activation Steering
