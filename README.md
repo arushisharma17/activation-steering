@@ -61,6 +61,18 @@ The filtered dataset is located at docs/demo-data as filtered-0, filtered-1, fil
 sbatch run_apr_eval.sh
 ```
 
+[Dataset](https://github.com/ASSERT-KTH/human-eval-java)
+HumanEval-Java
+
+- Source: ASSERT-KTH/human-eval-java
+- Description: 163 systematically injected bugs in Java implementations of Python programming problems
+- Bug Types: 27 mutation operators (condition changes, operator changes, return modifications, etc.)
+
+#### To run initial experiment
+
+```bash 
+python convert_for_apr_eval.py --clone -o humaneval_ab_format.jsonl
+```
 
 ## Activation Steering
 Activation steering is a technique for influencing the behavior of language models by modifying their internal activations during inference. This library provides tools for:
