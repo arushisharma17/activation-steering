@@ -74,6 +74,12 @@ HumanEval-Java
 python convert_for_apr_eval.py --clone -o humaneval_ab_format.jsonl
 ```
 
+#### To run individual runs dynamically  (.sh file Model Name , dataset , layers, strength, Few prompts
+
+```bash
+ sbatch run_eval_dynamic.sh "Qwen/Qwen2.5-Coder-7B-Instruct"   "dataset path"  "23,24,25,26,27"              "2.0"            "5" 
+```
+
 
 #### To run multiple runs (Hyperparamters Combinations) Sample command where the dataset path can be updated inside the .sh file and model can be changed dynamically
 
