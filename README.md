@@ -74,6 +74,15 @@ HumanEval-Java
 python convert_for_apr_eval.py --clone -o humaneval_ab_format.jsonl
 ```
 
+
+#### To run multiple runs (Hyperparamters Combinations) Sample command where the dataset path can be updated inside the .sh file and model can be changed dynamically
+
+```bash
+
+sbatch new_updated2.sh "codellama/CodeLlama-7b-Instruct-hf"
+
+
+```
 ## Activation Steering
 Activation steering is a technique for influencing the behavior of language models by modifying their internal activations during inference. This library provides tools for:
 
