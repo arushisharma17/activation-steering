@@ -94,9 +94,9 @@ class SteeringDataset:
             self.formatted_dataset = self.formatted_dataset_pre_populated
         
         log("=*"*15)
-        log(f"[bold green]Final dataset size[/bold green]: {len(self.formatted_dataset)} examples", class_name="SteeringDataset")
-        log(f"[bold red]Positive example[/bold red]: {self.formatted_dataset[0].positive}", class_name="SteeringDataset")
-        log(f"[bold blue]Negative example[/bold blue]: {self.formatted_dataset[0].negative}", class_name="SteeringDataset")
+#        log(f"[bold green]Final dataset size[/bold green]: {len(self.formatted_dataset)} examples", class_name="SteeringDataset")
+#        log(f"[bold red]Positive example[/bold red]: {self.formatted_dataset[0].positive}", class_name="SteeringDataset")
+#        log(f"[bold blue]Negative example[/bold blue]: {self.formatted_dataset[0].negative}", class_name="SteeringDataset")
         log("=*"*15)
         
 

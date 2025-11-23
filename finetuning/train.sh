@@ -15,14 +15,15 @@
 
 export HF_HOME=/lustre/hdd/LAS/jannesar-lab/arushi/
 cd /lustre/hdd/LAS/jannesar-lab/arushi
-source myenv/bin/activate
+source finetuning_env/bin/activate
+export HUGGING_FACE_HUB_TOKEN="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"
 cd activation-steering-orig/finetuning/
 
 python train_codellama_lora.py \
   --train_jsonl train.jsonl \
   --eval_jsonl  valid.jsonl \
   --model_name  meta-llama/CodeLlama-7b-Instruct-hf \
-  --out_dir     outputs/codellama_apr_lora \
+  --out_dir     outputs/codellama_apr_lora_eval \
   --num_train_epochs 2 \
   --per_device_train_batch_size 2 \
   --per_device_eval_batch_size 2 \

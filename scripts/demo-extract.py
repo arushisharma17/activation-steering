@@ -3,9 +3,9 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from activation_steering import SteeringDataset, SteeringVector
 HF_cache = ""
-
-# 1. Load model
-model = AutoModelForCausalLM.from_pretrained("meta-llama/CodeLlama-7b-Instruct-hf", device_map='auto', torch_dtype=torch.float16, cache_dir=HF_cache)
+# lustre/hdd/LAS/jannesar-lab/arushi/activation-steering-orig/finetuning/qwen2_5_tssb_qlora, Qwen/Qwen2.5-Coder-7B-Instruct
+# 1. Load model meta-llama/CodeLlama-7b-Instruct-hf
+model = AutoModelForCausalLM.from_pretrained("/lustre/hdd/LAS/jannesar-lab/arushi/activation-steering-orig/finetuning/outputs/codellama_apr_lora_eval", device_map='auto', dtype=torch.float16, cache_dir=HF_cache)
 tokenizer = AutoTokenizer.from_pretrained("meta-llama/CodeLlama-7b-Instruct-hf", cache_dir=HF_cache)
 
 # 2. Load data
@@ -35,9 +35,9 @@ refusal_behavior_vector = SteeringVector.train(
     model=model,
     tokenizer=tokenizer,
     steering_dataset=refusal_behavior_dataset,
-    method="pca_center",
-    accumulate_last_x_tokens="suffix-only"
+    method="pca_diff",
+    accumulate_last_x_tokens=1
 )
 
 # 5. Let's save this behavior vector for later use
-refusal_behavior_vector.save('refusal_behavior_vector')
+refusal_behavior_vector.save('refusal_behavior_vector-codellama-finetuned.svec')
