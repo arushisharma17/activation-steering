@@ -52,7 +52,7 @@ MANY_JSON="${ROOT}/data/manysstubs4j/processed/apr_manysstubs_pairs_3k.json"
 # Selected dataset path (filled later)
 PAIRS_JSON=""
 
-MAX_EXAMPLES=300
+MAX_EXAMPLES=200
 HF_CACHE="/lustre/hdd/LAS/jannesar-lab/arushi/activation-steering/models"
 METHOD="pca_center"
 LAST_TOKENS="suffix-only"
