@@ -1,5 +1,5 @@
-
-
+# SteerRepair: Inference-time Correctness Steering for APR
+## Setup
 ```bash
 python --version   #to check python version
 python -m venv myenv
@@ -31,11 +31,6 @@ I have a filtered version of the dataset with just the following bugs:
 - `SINGLE_TOKEN`
 
 The filtered dataset is located at docs/demo-data as filtered-0, filtered-1, filtered-2. filtered-0 was used to create the apr questions and contrastive pairs (mutually exclusive sets) using apr.sh. No need to re-run. 
-
-#### To run initial experiment
-```bash
-sbatch run_apr_eval.sh
-```
 
 
 
