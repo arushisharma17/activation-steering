@@ -18,9 +18,12 @@ except Exception:
 
 HF_CACHE = os.environ.get("HF_CACHE", "")
 
-MCQ_CACHE_DIR = "mcq_cache"
-METRICS_PATH = os.path.join(MCQ_CACHE_DIR, "metrics_ab_apr.jsonl")
+#MCQ_CACHE_DIR = "mcq_cache"
+#METRICS_PATH = os.path.join(MCQ_CACHE_DIR, "metrics_ab_apr.jsonl")
 
+# Allow overriding cache root via environment (e.g., mcq_cache/steering_100/tssb)
+MCQ_CACHE_DIR = os.environ.get("MCQ_CACHE_DIR", "mcq_cache")
+METRICS_PATH = os.path.join(MCQ_CACHE_DIR, "metrics_ab_apr.jsonl")
 
 # --- helper: fix LeashLayer-wrapped blocks for Qwen2/Qwen2.5 ------------------
 def _fix_wrapped_layers_for_qwen2(mal):
