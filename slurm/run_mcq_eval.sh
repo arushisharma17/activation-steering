@@ -177,7 +177,8 @@ case "$DATASET" in
   tssb)
     DATASET_SLUG="tssb"
     VECTOR_ROOT="vectors/python"
-    VECTOR_PREFIX="behavior_tssb_correctness_behavior_apr"
+    VECTOR_PREFIX="correctness_vector_100"
+    #VECTOR_PREFIX="behavior_tssb_correctness_behavior_apr"
     ;;
   manysstubs)
     DATASET_SLUG="manysstubs"

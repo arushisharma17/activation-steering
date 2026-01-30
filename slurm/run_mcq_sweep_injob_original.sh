@@ -36,13 +36,13 @@ cd activation-steering/
 ########################################
 
 DATASET="tssb"          # tssb | manysstubs
-FEWSHOT_K=1
+FEWSHOT_K=3
 SEED=42
-MCQ_FILE=""             # if empty -> steering_100/<dataset>/mcq/<dataset>_mcq_kK_seedS.json
+MCQ_FILE=""             # if empty -> mcq_cache/<dataset>_mcq_kK_seedS.json
 
 # Eval subset controls (pass through to ab_apr_eval via run_mcq_eval.sh)
 EVAL_START=0            # index of first eval item
-EVAL_LIMIT=5000         # 0 = all items from EVAL_START
+EVAL_LIMIT=5000            # 0 = all items from EVAL_START
 
 # Which models to sweep inside this job
 # Parsed from --models "all" or space-separated list:
@@ -103,26 +103,6 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
-
-########################################
-# Use steering_100 directory (unified layout)
-########################################
-
-ROOT="mcq_cache/steering_100/${DATASET}"
-export MCQ_CACHE_DIR="${ROOT}"
-
-mkdir -p "${ROOT}/mcq" "${ROOT}/baseline" "${ROOT}/steered"
-
-# Resolve MCQ file path inside steering_100 unless explicitly overridden
-if [[ -z "$MCQ_FILE" ]]; then
-  MCQ_FILE="${ROOT}/mcq/${DATASET}_mcq_k${FEWSHOT_K}_seed${SEED}.json"
-fi
-
-if [[ ! -f "$MCQ_FILE" ]]; then
-  echo "ERROR: MCQ file not found: ${MCQ_FILE}"
-  echo "       Build it first with slurm/run_mcq_build.sh."
-  exit 1
-fi
 
 ########################################
 # Dataset → vector dir + naming
@@ -202,6 +182,20 @@ else
 fi
 
 ########################################
+# Resolve MCQ file path
+########################################
+
+if [[ -z "$MCQ_FILE" ]]; then
+  MCQ_FILE="mcq_cache/${DATASET}_mcq_k${FEWSHOT_K}_seed${SEED}.json"
+fi
+
+if [[ ! -f "$MCQ_FILE" ]]; then
+  echo "ERROR: MCQ file not found: ${MCQ_FILE}"
+  echo "       Build it first with slurm/run_mcq_build.sh."
+  exit 1
+fi
+
+########################################
 # Helper: check steering vector exists
 ########################################
 
@@ -246,7 +240,6 @@ echo "  Few-shot k : ${FEWSHOT_K}"
 echo "  Seed       : ${SEED}"
 echo "  Eval start : ${EVAL_START}"
 echo "  Eval limit : ${EVAL_LIMIT}"
-echo "  Cache root : ${ROOT}"
 echo -n "  Models     :"
 [[ "$RUN_CODELLAMA"    -eq 1 ]] && echo -n " codellama-7b"
 [[ "$RUN_QWEN_INST_7B" -eq 1 ]] && echo -n " qwen-inst-7b"

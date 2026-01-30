@@ -36,13 +36,13 @@ cd activation-steering/
 ########################################
 
 DATASET="tssb"          # tssb | manysstubs
-FEWSHOT_K=0
+FEWSHOT_K=1
 SEED=42
 EVAL_START=0            # index of first eval item
 EVAL_LIMIT=5000            # 0 = all items from EVAL_START
 
 # Models to run (keys: codellama-7b qwen-inst-7b qwen-coder-7b qwen-coder-14b)
-MODELS_STR="codellama-7b qwen-coder-7b qwen-coder-14b"
+MODELS_STR="codellama-7b qwen-coder-7b qwen-coder-14b qwen-inst-7b"
 
 # Strengths to sweep
 STRENGTHS=(1.0 1.5 2.0 2.5 3.0)
@@ -89,11 +89,27 @@ done
 # Folder structure + MCQ file
 ########################################
 
-ROOT="mcq_cache/${DATASET}"
+#ROOT="mcq_cache/${DATASET}"
+
+#mkdir -p "${ROOT}/mcq" "${ROOT}/baseline" "${ROOT}/steered"
+
+#MCQ_FILE="${ROOT}/mcq/${DATASET}_mcq_k${FEWSHOT_K}_seed${SEED}.json"
+
+
+########################################
+# Folder structure + MCQ file (steering_100)
+########################################
+
+# Root for this dataset's MCQ cache under the 100-sample steering tree
+ROOT="mcq_cache/steering_100/${DATASET}"
+
+# Tell ab_apr_eval.py to write caches + metrics here
+export MCQ_CACHE_DIR="${ROOT}"
 
 mkdir -p "${ROOT}/mcq" "${ROOT}/baseline" "${ROOT}/steered"
 
 MCQ_FILE="${ROOT}/mcq/${DATASET}_mcq_k${FEWSHOT_K}_seed${SEED}.json"
+
 
 if [[ ! -f "${MCQ_FILE}" ]]; then
   echo "[ERROR] MCQ file not found: ${MCQ_FILE}"

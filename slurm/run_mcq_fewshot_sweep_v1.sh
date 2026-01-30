@@ -40,17 +40,16 @@ mkdir -p mcq_cache
 ########################################
 # Usage examples:
 #
-#   # Sweep k in {0,1,3,5} for all models on ManySStuBs (full eval set)
+#   # Sweep k in {0,1,3,5} for all models on ManySStuBs
 #   sbatch slurm/run_mcq_fewshot_sweep.sh \
 #     --dataset manysstubs \
 #     --seed 42
 #
-#   # Sweep only k=0,3 for Qwen coder 7B on TSSB, first 5000 eval items
+#   # Sweep only k=0,3 for Qwen coder 7B on TSSB
 #   sbatch slurm/run_mcq_fewshot_sweep.sh \
 #     --dataset tssb \
 #     --seed 42 \
 #     --k-list "0 3" \
-#     --eval-start 0 --eval-limit 5000 \
 #     --qwen-coder-7b
 ########################################
 
@@ -59,10 +58,6 @@ SEED=42
 K_LIST="0 1 3 5"         # space-separated list of few-shot k values
 LAYERS="last:4"          # not used here (baseline only) but logged for completeness
 STRENGTH="2.0"           # same as above
-
-# NEW: subset controls (pass-through to ab_apr_eval.py)
-EVAL_START=0             # index of first eval item
-EVAL_LIMIT=5000          # 0 = all remaining; default 5000 as requested
 
 # model selection flags
 RUN_CODELLAMA=0
@@ -91,14 +86,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --strength)
       STRENGTH="$2"
-      shift 2
-      ;;
-    --eval-start)
-      EVAL_START="$2"
-      shift 2
-      ;;
-    --eval-limit)
-      EVAL_LIMIT="$2"
       shift 2
       ;;
     # model selection
@@ -219,18 +206,16 @@ run_baseline_for_model_k () {
   local k="$4"
 
   local mcq_file="mcq_cache/${DATASET_SLUG}_mcq_k${k}_seed${SEED}.json"
-  local baseline_cache="mcq_cache/baseline_${DATASET_SLUG}_${model_slug}_k${k}_seed${SEED}_es${EVAL_START}_el${EVAL_LIMIT}.json"
+  local baseline_cache="mcq_cache/baseline_${DATASET_SLUG}_${model_slug}_k${k}_seed${SEED}.json"
 
   echo "======================================================"
   echo "Baseline A/B MCQ eval"
-  echo "  Dataset       : ${DATASET_SLUG}"
-  echo "  k (few-shot)  : ${k}"
-  echo "  MCQ file      : ${mcq_file}"
-  echo "  Model         : ${model_id}"
-  echo "  Tokenizer     : ${tokenizer_id}"
-  echo "  Seed          : ${SEED}"
-  echo "  Eval start    : ${EVAL_START}"
-  echo "  Eval limit    : ${EVAL_LIMIT}"
+  echo "  Dataset      : ${DATASET_SLUG}"
+  echo "  k (few-shot) : ${k}"
+  echo "  MCQ file     : ${mcq_file}"
+  echo "  Model        : ${model_id}"
+  echo "  Tokenizer    : ${tokenizer_id}"
+  echo "  Seed         : ${SEED}"
   echo "  Baseline cache: ${baseline_cache}"
   echo "======================================================"
 
@@ -242,8 +227,6 @@ run_baseline_for_model_k () {
     --fewshot_k "${k}" \
     --seed "${SEED}" \
     --baseline_cache "${baseline_cache}" \
-    --eval_start "${EVAL_START}" \
-    --eval_limit "${EVAL_LIMIT}" \
     --show_n 6
 }
 
@@ -253,7 +236,6 @@ run_baseline_for_model_k () {
 
 echo "[INFO] Few-shot sweep for dataset=${DATASET_SLUG}, seed=${SEED}"
 echo "[INFO] k-list: ${K_LIST}"
-echo "[INFO] eval_start=${EVAL_START}, eval_limit=${EVAL_LIMIT}"
 
 for K in ${K_LIST}; do
   build_mcq_if_needed "${K}"
