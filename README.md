@@ -1,20 +1,8 @@
-[Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 
-# Activation Steering
-
-👉 (Aug-2025) Added `pca_pairwise` method and set as default. Use `method="pca_pairwise"` to reproduce results closer to those reported in the paper. Colab demos (see below) are fixed accordingly, and they should work as expected.
-
-👉 (Jul-2025) Bug fixed: PCA_centering (@Reason239)
-
-👉 (Apr-2025) Conditional Activation Steering is a spotlight paper at ICLR 2025!
-
-👉 (Nov-2024) A few Colab demos are added.
-
-👉 (Sep-2024) Preprint released on [arXiv](https://arxiv.org/abs/2409.05907).
 
 ## Overview
 
-This is a general-purpose activation steering library to (1) extract vectors and (2) steer model behavior. We release this library alongside our recent paper on [*Programming Refusal with Conditional Activation Steering*](https://arxiv.org/abs/2409.05907) to provide an intuitive toolchain for activation steering efforts.
+This is a fork of the general-purpose activation steering library to (1) extract vectors and (2) steer model behavior. We release this library alongside our recent paper on [*Programming Refusal with Conditional Activation Steering*](https://arxiv.org/abs/2409.05907) to provide an intuitive toolchain for activation steering efforts.
 
 
 ## Instructions for Nova
@@ -39,6 +27,12 @@ pip install -e activation-steering
 ```
 
 ### Running initial experiments-
+
+Creating steering vectors: 
+activation-steering/slurm/run_train_vectors.sh
+
+Steering and Evaluation:
+activation-steering/slurm/run_mcq_eval.sh
 
 #### Getting the tssb-3m dataset 
 [Dataset](https://github.com/cedricrupb/TSSB3M?tab=readme-ov-file#datasets)
