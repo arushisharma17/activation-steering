@@ -1,0 +1,141 @@
+# gen.py : HumanEval generation with optional activation steering
+import argparse
+import os
+from human_eval.data import write_jsonl, read_problems
+
+from utils import (
+    generate,
+    load_model_and_tokenizer,
+    maybe_apply_steering,
+)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "--model",
+        required=True,
+        help="Hugging Face model path or identifier.",
+    )
+    ap.add_argument(
+        "--out",
+        default=None,
+        help="Output JSONL filename (will be placed under results/). "
+             "If not provided, auto-named using model + n + steering flag.",
+    )
+    ap.add_argument(
+        "--n",
+        type=int,
+        default=1,
+        help="Samples per HumanEval task.",
+    )
+    ap.add_argument(
+        "--max_new_tokens",
+        type=int,
+        default=256,
+        help="Maximum new tokens to generate.",
+    )
+    ap.add_argument(
+        "--temperature",
+        type=float,
+        default=0.2,
+        help="Sampling temperature.",
+    )
+    ap.add_argument(
+        "--top_p",
+        type=float,
+        default=0.95,
+        help="Nucleus sampling top-p.",
+    )
+
+    # Steering options
+    ap.add_argument(
+        "--steer",
+        action="store_true",
+        help="Enable activation steering using a SteeringVector.",
+    )
+    ap.add_argument(
+        "--vector_path",
+        default="refusal_behavior_vector",
+        help="Path to SteeringVector file (e.g. 'refusal_behavior_vector').",
+    )
+    ap.add_argument(
+        "--strength",
+        type=float,
+        default=2.0,
+        help="Steering vector strength.",
+    )
+    ap.add_argument(
+        "--layers",
+        default="last:4",
+        help="Layer spec: 'all', 'last:k', or comma-separated indices.",
+    )
+
+    args = ap.parse_args()
+
+    # -----------------------------
+    # Output naming + results dir
+    # -----------------------------
+    if args.out is None:
+        slug = args.model.rstrip("/").split("/")[-1]
+        suffix = "_steered" if args.steer else ""
+        filename = f"{slug}_humaneval_n{args.n}{suffix}.jsonl"
+    else:
+        filename = args.out
+
+    results_dir = "results"
+    os.makedirs(results_dir, exist_ok=True)
+    args.out = os.path.join(results_dir, filename)
+
+    print(f"[INFO] Output file: {args.out}")
+    print(f"[INFO] Loading base model: {args.model}")
+
+    # -----------------------------
+    # Load model + tokenizer
+    # -----------------------------
+    base_model, tok = load_model_and_tokenizer(args.model)
+
+    # -----------------------------
+    # Optional steering
+    # -----------------------------
+    model_for_gen, used_layers = maybe_apply_steering(
+        base_model=base_model,
+        tokenizer=tok,
+        steer=args.steer,
+        vector_path=args.vector_path,
+        strength=args.strength,
+        layers=args.layers,
+    )
+    if used_layers is not None:
+        print(f"[INFO] Steering active on layers: {used_layers}")
+    else:
+        print("[INFO] No steering (baseline).")
+
+    # -----------------------------
+    # HumanEval generation
+    # -----------------------------
+    problems = read_problems()
+    samples = []
+
+    print(f"[INFO] Generating {args.n} sample(s) per task for {len(problems)} tasks...")
+    for i, (tid, prob) in enumerate(problems.items(), start=1):
+        if i % 20 == 0:
+            print(f"[INFO] {i}/{len(problems)} tasks done")
+        for _ in range(args.n):
+            comp = generate(
+                model_for_gen,
+                tok,
+                prob["prompt"],
+                max_new_tokens=args.max_new_tokens,
+                temperature=args.temperature,
+                top_p=args.top_p,
+            )
+            samples.append({"task_id": tid, "completion": comp})
+
+    write_jsonl(args.out, samples)
+    print(f"[INFO] Done. Saved {len(samples)} samples to {args.out}")
+
+
+if __name__ == "__main__":
+    main()
+

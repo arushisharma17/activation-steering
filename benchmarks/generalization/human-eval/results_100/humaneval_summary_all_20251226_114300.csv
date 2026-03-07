@@ -1,0 +1,10 @@
+file,model,n,steered,dataset,pass@1,pass@5,pass@10,n_samples
+CodeLlama-7b-Instruct-hf_humaneval_n10_none_baseline.jsonl,CodeLlama-7b-Instruct-hf,10,False,none,0.34451219512195125,0.4327816492450639,0.4695121951219512,
+CodeLlama-7b-Instruct-hf_humaneval_n10_tssb_steered_correctness-tssb_Lband-0.75-6_a20_20251221-0237.jsonl,CodeLlama-7b-Instruct-hf,10,True,tssb,0.349390243902439,0.45025164537359663,0.4878048780487805,
+CodeLlama-7b-Instruct-hf_humaneval_n10_tssb_steered_correctness-tssb_Lband-0.75-6_a20_20251221-1848.jsonl,CodeLlama-7b-Instruct-hf,10,True,tssb,0.3481707317073171,0.44033101045296175,0.4817073170731707,
+Qwen2.5-7B-Instruct_humaneval_n10_none_baseline.jsonl,Qwen2.5-7B-Instruct,10,False,none,0.6634146341463415,0.7728416569879984,0.8109756097560976,
+Qwen2.5-7B-Instruct_humaneval_n10_tssb_steered_correctness-tssb_Lband-0.55-6_a15_20251221-1848.jsonl,Qwen2.5-7B-Instruct,10,True,tssb,0.6719512195121952,0.7795441347270616,0.8048780487804879,
+Qwen2.5-Coder-14B-Instruct_humaneval_n10_none_baseline.jsonl,Qwen2.5-Coder-14B-Instruct,10,False,none,0.8615853658536586,0.9245547812620983,0.9329268292682927,
+Qwen2.5-Coder-14B-Instruct_humaneval_n10_tssb_steered_correctness-tssb_Lband-0.15-6_a20_20251221-1848.jsonl,Qwen2.5-Coder-14B-Instruct,10,True,tssb,0.8591463414634145,0.9164005032907472,0.926829268292683,
+Qwen2.5-Coder-7B-Instruct_humaneval_n10_none_baseline.jsonl,Qwen2.5-Coder-7B-Instruct,10,False,none,0.776219512195122,0.8577477739063106,0.8719512195121951,
+Qwen2.5-Coder-7B-Instruct_humaneval_n10_tssb_steered_correctness-tssb_Lband-0.15-6_a25_20251221-1848.jsonl,Qwen2.5-Coder-7B-Instruct,10,True,tssb,0.7774390243902439,0.8574574138598529,0.8719512195121951,
