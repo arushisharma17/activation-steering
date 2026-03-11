@@ -1,0 +1,1709 @@
+check_id,title,subsection_language,source_url,num_code_blocks_in_subsection,num_variants,base_code,optimized_code_1,optimized_code_2,optimized_code_3,optimized_code_4,optimized_code_5,optimized_code_6,optimized_code_7
+PWR009,PWR009: Use OpenMP teams to offload work to GPU,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR009/README.md,2,1,"#pragma omp target map(to: A[0:m][0:p], B[0:p][0:n], m, n, p) \
+        map(tofrom: C[0:m][0:n])
+{
+  #pragma omp parallel default(none) shared(A, B, C, m, n, p)
+  {
+    #pragma omp for schedule(auto)
+    for (size_t i = 0; i < m; i++) {
+      for (size_t j = 0; j < n; j++) {
+        for (size_t k = 0; k < p; k++) {
+          C[i][j] += A[i][k] * B[k][j];
+        }
+      }
+    }
+  } // end parallel
+} // end target","#pragma omp target teams distribute parallel for \
+        map(to: A[0:m][0:p], B[0:p][0:n], m, n, p) shared(A, B, m, n, p) \
+        map(tofrom: C[0:m][0:n]) schedule(auto)
+for (size_t i = 0; i < m; i++) {
+  for (size_t j = 0; j < n; j++) {
+    for (size_t k = 0; k < p; k++) {
+      C[i][j] += A[i][k] * B[k][j];
+    }
+  }
+}",,,,,,
+PWR009,PWR009: Use OpenMP teams to offload work to GPU,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR009/README.md,2,1,"!$omp target map(to: A, B) map(tofrom: C)
+!$omp parallel default(none) private(i, j, k) shared(A, B, C)
+!$omp do
+do j = 1, size(C, 2)
+  do k = 1, size(C, 2)
+    do i = 1, size(C, 1)
+      C(i, j) = C(i, j) + A(i, k) * B(k, j)
+    end do
+  end do
+end do
+!$omp end do
+!$omp end parallel
+!$omp end target","!$omp target teams distribute map(to: A, B) map(tofrom: C)
+!$omp parallel default(none) private(i, j, k) shared(A, B, C)
+!$omp do
+do j = 1, size(C, 2)
+  do k = 1, size(C, 2)
+    do i = 1, size(C, 1)
+      C(i, j) = C(i, j) + A(i, k) * B(k, j)
+    end do
+  end do
+end do
+!$omp end do
+!$omp end parallel
+!$omp end target",,,,,,
+PWR012,PWR012: Pass only required fields from derived type as arguments to minimize data movements,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR012/README.md,2,1,"// example.c
+#include <stdlib.h>
+
+typedef struct {
+  int A[1000];
+  int B[1000];
+} data;
+
+__attribute__((pure)) int foo(const data *d) {
+  int result = 0;
+  for (int i = 0; i < 1000; i++) {
+    result += d->A[i];
+  }
+  return result;
+}
+
+void example() {
+  data *d = (data *)malloc(sizeof(data));
+  for (int i = 0; i < 1000; i++) {
+    d->A[i] = d->B[i] = 1;
+  }
+  int result = foo(d);
+  free(d);
+}","// solution.c
+#include <stdlib.h>
+
+typedef struct {
+  int A[1000];
+  int B[1000];
+} data;
+
+__attribute__((pure)) int foo(const int *A) {
+  int result = 0;
+  for (int i = 0; i < 1000; i++) {
+    result += A[i];
+  }
+  return result;
+}
+
+void solution() {
+  data *d = (data *)malloc(sizeof(data));
+  for (int i = 0; i < 1000; i++) {
+    d->A[i] = d->B[i] = 1;
+  }
+  int result = foo(d->A);
+  free(d);
+}",,,,,,
+PWR012,PWR012: Pass only required fields from derived type as arguments to minimize data movements,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR012/README.md,2,1,"! example.f90
+program example
+
+  implicit none
+
+  type data
+    integer :: a(10)
+    integer :: b(10)
+  end type data
+
+contains
+
+  pure subroutine foo(d)
+    implicit none
+    type(data), intent(in) :: d
+    integer :: i, sum
+
+    sum = 0
+    do i = 1, 10
+      sum = sum + d%a(i)
+    end do
+  end subroutine foo
+
+  pure subroutine bar()
+    implicit none
+    type(data) :: d
+    integer :: i
+
+    do i = 1, 10
+      d%a(i) = 1
+      d%b(i) = 1
+    end do
+
+    call foo(d)
+  end subroutine bar
+
+end program example","! solution.f90
+program solution
+
+  implicit none
+
+  type data
+    integer :: a(10)
+    integer :: b(10)
+  end type data
+
+contains
+
+  pure subroutine foo(a)
+    implicit none
+    integer, intent(in) :: a(:)
+    integer :: i, sum
+
+    sum = 0
+    do i = 1, size(a, 1)
+      sum = sum + a(i)
+    end do
+  end subroutine foo
+
+  pure subroutine bar()
+    implicit none
+    type(data) :: d
+    integer :: i
+
+    do i = 1, 10
+      d%a(i) = 1
+      d%b(i) = 1
+    end do
+
+    call foo(d%a)
+  end subroutine bar
+
+end program solution",,,,,,
+PWR013,PWR013: Avoid copying unused variables to or from the GPU,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR013/README.md,2,1,"void example(double *A, double *B, double *C) {
+  #pragma omp target teams distribute parallel for schedule(auto) shared(A, B) \
+          map(to: A[0:100], B[0:100]) map(tofrom: C[0:100])
+  for (int i = 0; i < 100; i++) {
+    C[i] += A[i];
+  }
+}","void example(double *A, double *B, double *C) {
+  #pragma omp target teams distribute parallel for schedule(auto) shared(A) \
+          map(to: A[0:100]) map(tofrom: C[0:100])
+  for (int i = 0; i < 100; i++) {
+    C[i] += A[i];
+  }
+}",,,,,,
+PWR013,PWR013: Avoid copying unused variables to or from the GPU,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR013/README.md,2,1,"subroutine example(A, B, C)
+  implicit none
+  integer, intent(in) :: A(:), B(:)
+  integer, intent(inout) :: C(:)
+  integer :: i
+
+  !$omp target teams distribute parallel do schedule(auto) default(none) &
+  !$omp& shared(A, B, C) private(i) map(to: A, B) map(tofrom: C)
+  do i = 1, size(C, 1)
+    C(i) = C(i) + A(i)
+  end do
+  !$omp end target teams distribute parallel do
+end subroutine example","subroutine example(A, B, C)
+  implicit none
+  integer, intent(in) :: A(:), B(:)
+  integer, intent(inout) :: C(:)
+  integer :: i
+
+  !$omp target teams distribute parallel do schedule(auto) default(none) &
+  !$omp& shared(A, C) private(i) map(to: A) map(tofrom: C)
+  do i = 1, size(C, 1)
+    C(i) = C(i) + A(i)
+  end do
+  !$omp end target teams distribute parallel do
+end subroutine example",,,,,,
+PWR015,PWR015: Avoid copying unnecessary array elements to or from the GPU,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR015/README.md,2,1,"void example() {
+  int A[100], B[100], sum[100];
+  #pragma omp target map(to: A[0:100], B[0:100]) map(from: sum[0:100])
+  #pragma omp parallel for private(i)
+  for (int i = 0; i < 50; i++) {
+    sum[i] = A[i] + B[i];
+  }
+}","void example() {
+  int A[100], B[100], sum[100];
+  #pragma omp target map(to: A[0:50], B[0:50]) map(from: sum[0:50])
+  #pragma omp parallel for private(i)
+  for (int i = 0; i < 50; i++) {
+    sum[i] = A[i] + B[i];
+  }
+}",,,,,,
+PWR015,PWR015: Avoid copying unnecessary array elements to or from the GPU,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR015/README.md,2,1,"subroutine example(A, B, sum)
+  implicit none
+  integer, intent(in) :: A(:), B(:)
+  integer, intent(out) :: sum(:)
+  integer :: i
+
+  !$omp target parallel do default(none) shared(A, B, sum) private(i) &
+  !$omp& map(to: a, b) map(from: sum)
+  do i = 1, size(sum, 1) / 2
+    sum(i) = A(i) + B(i)
+  end do
+  !$omp end target parallel do
+end subroutine example","subroutine example(A, B, sum)
+  implicit none
+  integer, intent(in) :: A(:), B(:)
+  integer, intent(out) :: sum(:)
+  integer :: i, half_size
+
+  half_size = size(sum, 1) / 2
+
+  !$omp target parallel do default(none) shared(A, B, sum) private(i) &
+  !$omp& map(to: a(1:half_size), b(1:half_size)) map(from: sum(1:half_size))
+  do i = 1, half_size
+    sum(i) = A(i) + B(i)
+  end do
+  !$omp end target parallel do
+end subroutine example",,,,,,
+PWR016,PWR016: Use separate arrays instead of an Array-of-Structs,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR016/README.md,2,1,"typedef struct {
+  int x;
+  int y;
+  int z;
+} point;
+
+void example() {
+  point points[1000];
+  for (int i = 0; i < 1000; i++) {
+    points[i].x = 1;
+    points[i].y = 1;
+  }
+}","void example() {
+  int points_x[1000];
+  int points_y[1000];
+  int points_z[1000];
+  for (int i = 0; i < 1000; i++) {
+    points_x[i] = 1;
+    points_y[i] = 1;
+  }
+}",,,,,,
+PWR016,PWR016: Use separate arrays instead of an Array-of-Structs,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR016/README.md,2,1,"program main
+  implicit none
+
+  type point
+    integer :: x
+    integer :: y
+    integer :: z
+  end type point
+
+contains
+
+  subroutine foo()
+    implicit none
+    type(point) :: points(1000)
+    integer :: i
+
+    do i = 1, 1000
+      points(i)%x = 1
+      points(i)%y = 1
+    end do
+  end subroutine foo
+
+end program main","subroutine foo()
+  implicit none
+  integer :: points_x(1000), points_y(1000), points_z(1000)
+  integer :: i
+
+  do i = 1, 1000
+    points_x(i) = 1
+    points_y(i) = 1
+  end do
+end subroutine foo",,,,,,
+PWR018,PWR018: Call to recursive function within a loop inhibits vectorization,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR018/README.md,2,1,"// example.c
+double fib(unsigned n) {
+  if (n == 0) {
+    return 0.0;
+  }
+  if (n == 1) {
+    return 1.0;
+  }
+  return fib(n - 1) + fib(n - 2);
+}
+
+double example(unsigned times) {
+  double sum = 0.0;
+  for (unsigned i = 0; i < times; i++) {
+    sum += fib(i);
+  }
+  return sum;
+}","// solution.c
+__attribute__((pure)) double solution(unsigned times) {
+  double sum = 0.0;
+  double fib_0 = 0.0;
+  double fib_1 = 1.0;
+  for (unsigned i = 2; i < times; i++) {
+    double fib = fib_0 + fib_1;
+    sum += fib;
+    fib_0 = fib_1;
+    fib_1 = fib;
+  }
+  return sum;
+}",,,,,,
+PWR018,PWR018: Call to recursive function within a loop inhibits vectorization,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR018/README.md,2,1,"! example.f90
+module mod_fibonacci
+  implicit none
+  contains
+  recursive function fibonacci(n) result(fibo)
+    implicit none
+    integer, intent(in) :: n
+    integer :: fibo
+
+    if (n == 0) then
+      fibo = 0
+    else if (n == 1) then
+      fibo = 1
+    else
+      fibo = fibonacci(n - 1) + fibonacci(n - 2)
+    end if
+  end function fibonacci
+end module mod_fibonacci
+
+subroutine example(times)
+  use mod_fibonacci, only : fibonacci
+
+  implicit none
+  integer, intent(in) :: times
+  integer :: i, sum
+
+  sum = 0
+
+  do i = 0, times - 1
+    sum = sum + fibonacci(i)
+  end do
+end subroutine example","! solution.f90
+subroutine solution(times)
+  implicit none
+  integer, intent(in) :: times
+  integer :: i, sum
+  integer :: fib_0, fib_1, fib
+
+  sum = 0
+  fib_0 = 0
+  fib_1 = 1
+
+  do i = 2, times - 1
+    fib = fib_0 + fib_1
+    sum = sum + fib
+    fib_0 = fib_1
+    fib_1 = fib
+  end do
+end subroutine solution",,,,,,
+PWR019,PWR019: Consider interchanging loops to favor vectorization by maximizing inner loop's trip count,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR019/README.md,2,1,"for (int i = 0; i < n; i++) {
+  for (int j = margin; j < n - margin; j++) {
+    bb[i][j] = 0.0;
+    for (int k = -margin; k < margin; k++) {
+      bb[i][j] += aa[i][j + k];
+    }
+  }
+}","for (int i = 0; i < n; i++) {
+  for (int j = margin; j < n - margin; j++) {
+    bb[i][j] = 0.0;
+  }
+
+  for (int k = -margin; k < margin; k++) {
+    for (int j = margin; j < n - margin; j++) {
+      bb[i][j] += aa[i][j + k];
+    }
+  }
+}",,,,,,
+PWR019,PWR019: Consider interchanging loops to favor vectorization by maximizing inner loop's trip count,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR019/README.md,2,1,"do i = 1, n
+  do j = margin, n - margin
+    bb(i, j) = 0.0
+
+    do k = -margin, margin
+      bb(i, j) = bb(i, j) + aa(i, j + k)
+    end do
+  end do
+end do","do i = 1, n
+  do j = margin, n - margin
+    bb(i, j) = 0.0
+  end do
+
+  do k = -margin, margin
+    do j = margin, n - margin
+      bb(i, j) = bb(i, j) + aa(i, j + k)
+    end do
+  end do
+end do",,,,,,
+PWR020,PWR020: Consider loop fission to enable vectorization,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR020/README.md,2,1,"void example() {
+  int A[1000], B[1000], C[1000];
+
+  for (int i = 0; i < 1000; i++) {
+    A[i] = B[i] = C[i] = i;
+  }
+
+  for (int i = 0; i < 1000; i++) {
+    A[i] += i;
+    B[C[i]] += i;
+  }
+}","void example() {
+  int A[1000], B[1000], C[1000];
+
+  for (int i = 0; i < 1000; i++) {
+    A[i] = B[i] = C[i] = i;
+  }
+
+  for (int i = 0; i < 1000; i++) {
+    A[i] += i;
+  }
+
+  for (int i = 0; i < 1000; i++) {
+    B[C[i]] += i;
+  }
+}",,,,,,
+PWR020,PWR020: Consider loop fission to enable vectorization,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR020/README.md,2,1,"subroutine example()
+  implicit none
+  integer :: a(100), b(100), c(100), i
+
+  do i = 1, 100
+    a(i) = i
+    b(i) = i
+    c(i) = i
+  end do
+
+  do i = 1, 100
+    a(i) = a(i) + i
+    b(c(i)) = b(c(i)) + i
+  end do
+end subroutine example","subroutine example()
+  implicit none
+  integer :: a(100), b(100), c(100), i
+
+  do i = 1, 100
+    a(i) = i
+    b(i) = i
+    c(i) = i
+  end do
+
+  do i = 1, 100
+    a(i) = a(i) + i
+  end do
+
+  do i = 1, 100
+    b(c(i)) = b(c(i)) + i
+  end do
+end subroutine example",,,,,,
+PWR021,PWR021: Consider loop fission with scalar to vector promotion to enable vectorization,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR021/README.md,2,1,"__attribute__((pure)) int expensive_computation(int *C, int i) {
+    return C[i] * 2;
+}
+
+void example(int *A, int *C) {
+  for (int i = 0; i < 1000; i++) {
+    int t = expensive_computation(C, i);
+    A[C[i]] += t;
+  }
+}","__attribute__((pure)) int expensive_computation(int *C, int i) {
+  return C[i] * 2;
+}
+
+void example(int *A, int *C) {
+  int t[1000];
+  for (int i = 0; i < 1000; i++) {
+    t[i] = expensive_computation(C, i);
+  }
+
+  for (int i = 0; i < 1000; i++) {
+    A[C[i]] += t[i];
+  }
+}",,,,,,
+PWR021,PWR021: Consider loop fission with scalar to vector promotion to enable vectorization,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR021/README.md,2,1,"subroutine example()
+  implicit none
+  integer :: a(1000), c(1000), i, t
+
+  do i = 1, 1000
+    t = expensive_computation(c, i)
+    a(c(i)) = a(c(i)) + t
+  end do
+
+contains
+
+  pure integer function expensive_computation(c, i)
+    implicit none
+    integer, intent(in) :: i, c(:)
+
+    expensive_computation = c(i) * 2
+  end function expensive_computation
+end subroutine example","subroutine example()
+  implicit none
+  integer :: a(1000), c(1000), t(1000), i, b
+
+  do i = 1, 1000
+    t(i) = expensive_computation(c, i)
+  end do
+  do i = 1, 1000
+    a(c(i)) = a(c(i)) + t(i)
+  end do
+
+contains
+
+  pure integer function expensive_computation(c, i)
+    implicit none
+    integer, intent(in) :: i, c(:)
+
+    expensive_computation = c(i) * 2
+  end function expensive_computation
+end subroutine example",,,,,,
+PWR022,PWR022: Move invariant conditional out of the loop to facilitate vectorization,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR022/README.md,2,1,"int example(int *A, int n) {
+  int total = 0;
+
+  for (int i = 0; i < n; ++i) {
+    if (n < 10) {
+      total++;
+    }
+    A[i] = total;
+  }
+
+  return total;
+}","int example(int *A, int n) {
+  int total = 0;
+
+  if (n < 10) {
+    for (int i = 0; i < n; ++i) {
+      A[i] = ++total;
+    }
+  } else {
+    for (int i = 0; i < n; ++i) {
+      A[i] = total;
+    }
+  }
+
+  return total;
+}",,,,,,
+PWR022,PWR022: Move invariant conditional out of the loop to facilitate vectorization,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR022/README.md,2,1,"pure subroutine example(array)
+  integer, intent(out) :: array(:)
+  integer :: i, total
+
+  total = 0
+
+  do i = 1, size(array, 1)
+    if (size(array, 1) < 10) then
+      total = total + 1
+    end if
+    array(i) = total
+  end do
+end subroutine example","pure subroutine example(array)
+  integer, intent(out) :: array(:)
+  integer :: i, total
+
+  total = 0
+
+  if (size(array, 1) < 10) then
+    do i = 1, size(array, 1)
+      total = total + 1
+      array(i) = total
+    end do
+  else
+    do i = 1, size(array, 1)
+      array(i) = total
+    end do
+  end if
+end subroutine example",,,,,,
+PWR025,PWR025: Consider annotating pure function with OpenMP `declare simd`,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR025/README.md,2,1,"__attribute__((const)) int foo(int a) {
+  return 2 * a;
+}
+
+void example(int *A, int n) {
+  for (int i = 0; i < n; i++) {
+    A[i] = foo(i);
+  }
+}","#pragma omp declare simd
+__attribute__((const)) int foo(int a) {
+  return 2 * a;
+}
+
+void example(int *A, int n) {
+  for (int i = 0; i < n; i++) {
+    A[i] = foo(i);
+  }
+}",,,,,,
+PWR025,PWR025: Consider annotating pure function with OpenMP `declare simd`,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR025/README.md,2,1,"subroutine example(A)
+  implicit none
+  integer, intent(out) :: A(:)
+  integer :: i
+
+  do i = 1, size(A, 1)
+    A(i) = foo(i)
+  end do
+
+contains
+
+  pure integer function foo(a)
+    implicit none
+    integer, intent(in) :: a
+    foo = 2 * a
+  end function foo
+end subroutine example","subroutine example(A)
+  implicit none
+  integer, intent(out) :: A(:)
+  integer :: i
+
+  do i = 1, size(A, 1)
+    A(i) = foo(i)
+  end do
+
+contains
+
+  pure integer function foo(a)
+    !$omp declare simd
+    implicit none
+    integer, intent(in) :: a
+    foo = 2 * a
+  end function foo
+end subroutine example",,,,,,
+PWR026,PWR026: Annotate function for OpenMP offload,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR026/README.md,2,1,"__attribute__((const)) int foo(int a) {
+  return 2 * a;
+}
+
+void example(int n, int *A) {
+  #pragma omp target teams distribute parallel for default(none) shared(A, n)
+  for (int i = 0; i < n; i++) {
+    A[i] = foo(i);
+  }
+}","#pragma omp declare target
+__attribute__((const)) int foo(int a) {
+  return 2 * a;
+}
+#pragma omp end declare target
+
+void example(int n, int *A) {
+  #pragma omp target teams distribute parallel for default(none) shared(A, n)
+  for (int i = 0; i < n; i++) {
+    A[i] = foo(i);
+  }
+}",,,,,,
+PWR026,PWR026: Annotate function for OpenMP offload,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR026/README.md,2,1,"subroutine example(A)
+  implicit none
+  integer, intent(out) :: A(:)
+  integer :: i
+
+  !$omp target teams distribute parallel do default(none) private(i) shared(A)
+  do i = 1, size(A, 1)
+    A(i) = foo(i)
+  end do
+
+contains
+
+  pure integer function foo(a)
+    implicit none
+    integer, intent(in) :: a
+    foo = 2 * a
+  end function foo
+end subroutine example","subroutine example(A)
+  implicit none
+  integer, intent(out) :: A(:)
+  integer :: i
+
+  !$omp target teams distribute parallel do default(none) private(i) shared(A)
+  do i = 1, size(A, 1)
+    A(i) = foo(i)
+  end do
+
+contains
+
+  pure integer function foo(a)
+    !$omp declare target
+    implicit none
+    integer, intent(in) :: a
+    foo = 2 * a
+  end function foo
+end subroutine example",,,,,,
+PWR027,PWR027: Annotate function for OpenACC offload,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR027/README.md,2,1,"__attribute__((const)) int foo(int a) {
+  return 2 * a;
+}
+
+void example(int n, int *A) {
+  #pragma acc kernels
+  for (int i = 0; i < n; i++) {
+    A[i] = foo(i);
+  }
+}","#pragma acc routine
+__attribute__((const)) int foo(int a) {
+  return 2 * a;
+}
+
+void example(int n, int *A) {
+  #pragma acc kernels
+  for (int i = 0; i < n; i++) {
+    A[i] = foo(i);
+  }
+}",,,,,,
+PWR027,PWR027: Annotate function for OpenACC offload,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR027/README.md,2,1,"subroutine example(A)
+  implicit none
+  integer, intent(out) :: A(:)
+  integer :: i
+
+  !$acc kernels
+  do i = 1, size(A, 1)
+    A(i) = foo(i)
+  end do
+  !$acc end kernels
+
+contains
+
+  pure integer function foo(a)
+    implicit none
+    integer, intent(in) :: a
+    foo = 2 * a
+  end function foo
+end subroutine example","subroutine example(A)
+  implicit none
+  integer, intent(out) :: A(:)
+  integer :: i
+
+  !$acc kernels
+  do i = 1, size(A, 1)
+    A(i) = foo(i)
+  end do
+  !$acc end kernels
+
+contains
+
+  pure integer function foo(a)
+    !$acc routine
+    implicit none
+    integer, intent(in) :: a
+    foo = 2 * a
+  end function foo
+end subroutine example",,,,,,
+PWR029,PWR029: Remove integer increment preventing performance optimization,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR029/README.md,2,1,"void example(float *a, float *b, unsigned size) {
+  unsigned k = 0;
+  for (unsigned i = 0; i < size; i++) {
+    b[i] = a[k] + 1;
+    k = k + 1;
+  }
+}","for (unsigned i = 0; i < size; i++) {
+  b[i] = a[i] + 1;
+}",,,,,,
+PWR029,PWR029: Remove integer increment preventing performance optimization,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR029/README.md,2,1,"subroutine example(a, b)
+  real, intent(in) :: a
+  real, intent(out) :: b
+  integer :: i, k
+
+  k = 1
+  do i = 1, size(b, 1)
+    b(i) = a(k) + 1
+    k = k + 1
+  end do
+end subroutine example","subroutine example(a, b)
+  real, intent(in) :: a
+  real, intent(out) :: b
+  integer :: i
+
+  do i = 1, size(b, 1)
+    b(i) = a(i) + 1
+  end do
+end subroutine example",,,,,,
+PWR031,"PWR031: Replace pow by multiplication, division and/or square root",C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR031/README.md,3,2,"// example.c
+#include <math.h>
+#include <stdio.h>
+
+__attribute__((const)) double raise_x_to_the_power_of_1_point_5(double x) {
+  return pow(x, 1.5);
+}
+
+int main() {
+  printf(""2 raised to the power of 1.5 is: %0.15f\n"",
+         raise_x_to_the_power_of_1_point_5(2.0));
+  return 0;
+}","// solution.c
+...
+
+__attribute__((const)) double raise_x_to_the_power_of_1_point_5(double x) {
+  return x * sqrt(x);
+}
+
+...","$ gcc --version
+gcc (GCC) 14.2.1 20240910
+$ gcc example.c -lm -o example
+$ gcc solution.c -lm -o solution
+$ ./example
+2 raised to the power of 1.5 is: 2.828427124746190
+$ ./solution
+2 raised to the power of 1.5 is: 2.828427124746190",,,,,
+PWR031,"PWR031: Replace pow by multiplication, division and/or square root",Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR031/README.md,3,2,"! example.f90
+program main
+  use iso_fortran_env, only : real64
+  implicit none
+  !
+  print '(A, F0.15)', '2 raised to the power of 1.5 is: ', &
+      raise_x_to_the_power_of_1_point_5(2.0_real64)
+contains
+  pure function raise_x_to_the_power_of_1_point_5(x)
+    implicit none
+    ! function return type
+    real(kind=real64) :: raise_x_to_the_power_of_1_point_5
+    ! dummy args
+    real(kind=real64), intent(in) :: x
+    !
+    raise_x_to_the_power_of_1_point_5 = x ** 1.5_real64
+  end function raise_x_to_the_power_of_1_point_5
+end program main","! solution.f90
+program main
+  ...
+contains
+  pure function raise_x_to_the_power_of_1_point_5(x)
+    ...
+    raise_x_to_the_power_of_1_point_5 = x * sqrt(x)
+  end function raise_x_to_the_power_of_1_point_5
+end program main","$ gfortran --version
+GNU Fortran (GCC) 14.2.1 20240910
+$ gfortran example.f90 -o example
+$ gfortran solution.f90 -o solution
+$ ./example
+2 raised to the power of 1.5 is: 2.828427124746190
+$ ./solution
+2 raised to the power of 1.5 is: 2.828427124746190",,,,,
+PWR034,PWR034: Avoid strided array access to improve performance,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR034/README.md,3,2,"void example(float *a, unsigned size) {
+  for (unsigned i = 0; i < size; i += 2) {
+    a[i] = 0.0f;
+  }
+}","for (int i = 0; i < LEN; ++i) {
+  for (int j = 1; j < LEN; j++) {
+    a[j * LEN + i] = a[j * LEN + i - 1] + b[j * LEN + i];
+  }
+}","for (int j = 1; j < LEN; ++j) {
+  for (int i = 0; i < LEN; i++) {
+    a[j * LEN + i] = a[j * LEN + i - 1] + b[j * LEN + i];
+  }
+}",,,,,
+PWR034,PWR034: Avoid strided array access to improve performance,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR034/README.md,3,2,"subroutine example(a)
+  real, intent(out) :: a(:)
+  integer :: i
+
+  do i = 1, size(a, 1), 2
+    a(i) = 0.0
+  end do
+end subroutine example","do i = 1, size(a, 1)
+  do j = 2, size(a, 2)
+    a(i, j) = a(i, j - 1) + b(i, j)
+  end do
+end do","do j = 2, size(a, 2)
+  do i = 1, size(a, 1)
+    a(i, j) = a(i, j - 1) + b(i, j)
+  end do
+end do",,,,,
+PWR036,PWR036: Avoid indirect array access to improve performance,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR036/README.md,3,2,"void example(float *a, unsigned *b, unsigned size) {
+  for (unsigned i = 0; i < size; ++i) {
+    a[b[i]] = 0.0f;
+  }
+}","for (int i = 0; i < LEN_1D; ++i) {
+  for (int j = 1; j < LEN_1D; j++) {
+    c[i] += a[index[j]];
+  }
+}","for (int j = 1; j < LEN_1D; j++) {
+  for (int i = 0; i < LEN_1D; ++i) {
+    c[i] += a[index[j]];
+  }
+}",,,,,
+PWR036,PWR036: Avoid indirect array access to improve performance,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR036/README.md,3,2,"subroutine example()
+  implicit none
+  integer, intent(out) :: a
+  integer, intent(in) :: b
+  integer :: i
+
+  do i = 1, size(a, 1)
+    a(b(i)) = 0
+  end do
+end subroutine example","do i = 1, size(c, 1)
+  do j = 2, size(index, 1)
+    c(i) = c(i) + a(index(j))
+  end do
+end do","do j = 2, size(index, 1)
+  do i = 1, size(c, 1)
+    c(i) = c(i) + a(index(j))
+  end do
+end do",,,,,
+PWR039,PWR039: Consider loop interchange to improve the locality of reference and enable vectorization,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR039/README.md,2,1,"void example(double **A, int n) {
+  for (int j = 0; j < n; j++) {
+    for (int i = 0; i < n; i++) {
+      A[i][j] = 0.0;
+    }
+  }
+}","void example(double **A, int n) {
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+      A[i][j] = 0.0;
+    }
+  }
+}",,,,,,
+PWR039,PWR039: Consider loop interchange to improve the locality of reference and enable vectorization,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR039/README.md,2,1,"pure subroutine example(A)
+  real, intent(out) :: A(:, :)
+  integer :: i, j
+
+  do i = 1, size(A, 1)
+    do j = 1, size(A, 2)
+      A(i, j) = 0.0
+    end do
+  end do
+end subroutine example","pure subroutine example(A)
+  real, intent(out) :: A(:, :)
+  integer :: i, j
+
+  do j = 1, size(A, 2)
+    do i = 1, size(A, 1)
+      A(i, j) = 0.0
+    end do
+  end do
+end subroutine example",,,,,,
+PWR040,PWR040: Consider loop tiling to improve the locality of reference,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR040/README.md,2,1,"void example(double **A, double **B, int n) {
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+      A[i][j] = B[j][i];
+    }
+  }
+}","for (int ii = 0; ii < n; ii += TILE_SIZE) {
+  for (int jj = 0; jj < n; jj += TILE_SIZE) {
+    for (int i = ii; i < MIN(ii + TILE_SIZE, n); i++) {
+      for (int j = jj; j < MIN(jj + TILE_SIZE, n); j++) {
+        A[i][j] = B[j][i];
+      }
+    }
+  }
+}",,,,,,
+PWR040,PWR040: Consider loop tiling to improve the locality of reference,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR040/README.md,2,1,"pure subroutine example(a, b)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), dimension(:, :), intent(out) :: a
+  real(kind=real32), dimension(:, :), intent(in) :: b
+  integer :: i, j
+
+  do j = 1, size(a, 2)
+    do i = 1, size(a, 1)
+      a(i, j) = b(j, i)
+    end do
+  end do
+end subroutine example","do jj = 1, size(a, 2), TILE_SIZE
+  do ii = 1, size(a, 1), TILE_SIZE
+    do j = jj, MIN(jj + TILE_SIZE, size(a, 2))
+      do i = ii, MIN(ii + TILE_SIZE, size(a, 1))
+        a(i, j) = b(j, i)
+      end do
+    end do
+  end do
+end do",,,,,,
+PWR042,PWR042: Consider loop interchange by promoting the scalar reduction variable to an array,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR042/README.md,4,3,"for (int i = 0; i < n; i++) {
+  double s = 0.0;
+
+  for (int j = 0; j < n; j++) {
+    s += A[j][i];
+  }
+
+  B[i] = 0.1 * s;
+}","for (int i = 0; i < n; i++) {
+  s[i] = 0.0;
+
+  for (int j = 0; j < n; j++) {
+    s[i] += a[j][i];
+  }
+
+  B[i] = 0.1 * s[i];
+}","for (int i = 0; i < n; i++) {
+  s[i] = 0.0;
+}
+
+for (int i = 0; i < n; i++) {
+  for (int j = 0; j < n; j++) {
+    s[i] += a[j][i];
+  }
+}
+
+for (int i = 0; i < n; i++) {
+  B[i] = 0.1 * s[i];
+}","for (int i = 0; i < n; i++) {
+  s[i] = 0.0;
+}
+for (int j = 0; j < n; j++) {
+  for (int i = 0; i < n; i++) {
+    s[i] += a[j][i];
+  }
+}
+for (int i = 0; i < n; i++) {
+  b[i] = 0.1 * s[i];
+}",,,,
+PWR042,PWR042: Consider loop interchange by promoting the scalar reduction variable to an array,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR042/README.md,4,3,"do i = 1, size(A, 1)
+  s = 0.0
+
+  do j = 1, size(A, 2)
+    s = s + A(i, j)
+  end do
+
+  B(i) = 0.1 * s
+end do","do i = 1, size(A, 1)
+  s(i) = 0.0
+
+  do j = 1, size(A, 2)
+    s(i) = s(i) + A(i, j)
+  end do
+
+  B(i) = 0.1 * s(i)
+end do","do i = 1, size(A, 1)
+  s(i) = 0.0
+end do
+
+do i = 1, size(A, 1)
+  do j = 1, size(A, 2)
+    s(i) = s(i) + A(i, j)
+  end do
+end do
+
+do i = 1, size(A, 1)
+  B(i) = 0.1 * s(i)
+end do","do i = 1, size(A, 1)
+  s(i) = 0.0
+end do
+
+do j = 1, size(A, 2)
+  do i = 1, size(A, 1)
+    s(i) = s(i) + A(i, j)
+  end do
+end do
+
+do i = 1, size(A, 1)
+  B(i) = 0.1 * s(i)
+end do",,,,
+PWR043,PWR043: Consider loop interchange by replacing the scalar reduction,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR043/README.md,4,3,"{2,8} showLineNumbers
+for (int i = 0; i < n; i++) {
+  double s = 0.0;
+
+  for (int j = 0; j < n; j++) {
+    s += a[j][i];
+  }
+
+  b[i] = s;
+}","{2} showLineNumbers
+for (int i = 0; i < n; i++) {
+  b[i] = 0.0;
+
+  for (int j = 0; j < n; j++) {
+    b[i] += a[j][i];
+  }
+}","{1,5} showLineNumbers
+for (int i = 0; i < n; i++) {
+  b[i] = 0.0;
+}
+
+for (int i = 0; i < n; i++) {
+  for (int j = 0; j < n; j++) {
+    b[i] += a[j][i];
+  }
+}","for (int i = 0; i < n; i++) {
+  b[i] = 0.0;
+}
+
+for (int j = 0; j < n; j++) {
+  for (int i = 0; i < n; i++) {
+    b[i] += a[j][i];
+  }
+}",,,,
+PWR043,PWR043: Consider loop interchange by replacing the scalar reduction,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR043/README.md,4,3,"{2,8} showLineNumbers
+do i = 1, size(b, 1)
+  s = 0.0
+
+  do j = 1, size(a, 2)
+    s = s + a(i, j)
+  end do
+
+  b(i) = s
+end do","{2} showLineNumbers
+do i = 1, size(b, 1)
+  b(i) = 0.0
+
+  do j = 1, size(a, 2)
+    b(i) = b(i) + a(i, j)
+  end do
+end do","{1,5} showLineNumbers
+do i = 1, size(b, 1)
+  b(i) = 0.0
+end do
+
+do i = 1, size(b, 1)
+  do j = 1, size(a, 2)
+    b(i) = b(i) + a(i, j)
+  end do
+end do","do i = 1, size(b, 1)
+  b(i) = 0.0
+end do
+
+do j = 1, size(a, 2)
+  do i = 1, size(b, 1)
+    b(i) = b(i) + a(i, j)
+  end do
+end do",,,,
+PWR046,PWR046: Replace two divisions with a division and a multiplication,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR046/README.md,4,3,"{5} showLineNumbers
+// example.c
+#include <stdio.h>
+
+__attribute__((const)) float example(float a, float b, float c) {
+  return a / b / c;
+}
+
+int main() {
+  printf(""Result: %0.7f\n"", example(1.23, 1.41, 1.89));
+  return 0;
+}","$ gcc --version    
+gcc (Debian 12.2.0-14) 12.2.0
+$ gcc example.c -o example
+$ ./example
+Result: 0.4615558","// solution.c
+...
+
+__attribute__((const)) float example(float a, float b, float c) {
+  return a / (b * c);
+}
+
+...","$ gcc solution.c -o solution
+$ ./solution
+Result: 0.4615558",,,,
+PWR046,PWR046: Replace two divisions with a division and a multiplication,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR046/README.md,4,3,"{16} showLineNumbers
+// example.f90
+program main
+  implicit none
+
+  print *, ""Result:"", example(1.23, 1.41, 1.89)
+
+  contains
+
+  function example(a, b, c)
+    use iso_fortran_env, only: real32
+    implicit none
+
+    real(kind=real32), intent(in) :: a, b, c
+    real(kind=real32) :: example
+
+    example = a / b / c
+  end function example
+
+end program main","$ gfortran --version    
+GNU Fortran (Debian 12.2.0-14) 12.2.0
+$ gfortran example.c -o example
+$ ./example
+ Result:  0.461555779","// solution.f90
+
+...
+
+    example = a / (b * c)
+  end function example
+
+...","$ gfortran solution.c -o solution
+$ ./solution
+ Result:  0.461555809",,,,
+PWR049,PWR049: Move iterator-dependent condition outside of the loop,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR049/README.md,8,7,"{2} showLineNumbers
+for (int i = 0; i < n; ++i) {
+  if (i = 0) {
+    a[i] = 0;
+  } else {
+    a[i] = 1;
+  }
+}","a[0] = 0;
+
+for (int i = 1; i < n; ++i) {
+  a[i] = 1;
+}","{3} showLineNumbers
+for (int i = 0; i < n; ++i) {
+  for (int j = 0; j < n; ++j) {
+    if (j == 0) {
+      a[i][j] = 0;
+    } else {
+      a[i][j] = a[i][j - 1] + b[i][j];
+    }
+  }
+}","for (int i = 0; i < n; ++i) {
+  a[i][0] = 0;
+
+  for (int j = 1; j < n; ++j) {
+    a[i][j] = a[i][j - 1] + b[i][j];
+  }
+}","{2} showLineNumbers
+for (int i = 0; i < n; ++i) {
+  if (i < 10) {
+    a[i] = 0;
+  } else {
+    a[i] = 1;
+  }
+}","for (int i = 0; i < 10; ++i) {
+  a[i] = 0;
+}
+
+for (int i = 10; i < n; ++i) {
+  a[i] = 1;
+}","{2} showLineNumbers
+for (int i = 0; i < n; ++i) {
+  if (i % 2 == 0) {
+    a[i] = 1;
+  } else {
+    a[i] = 0;
+  }
+}","for (int i = 0; i < n; i += 2) {
+  a[i] = 1;
+  a[i + 1] = 0;
+}"
+PWR049,PWR049: Move iterator-dependent condition outside of the loop,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR049/README.md,8,7,"{2} showLineNumbers
+do i = 1, size(a, 1)
+  if (i == 1) then
+    a(i) = 0
+  else
+    a(i) = 1
+  end if
+end do","a(1) = 0
+
+do i = 2, size(a, 1)
+  a(i) = 1
+end do","{3} showLineNumbers
+do j = 1, size(a, 2)
+  do i = 1, size(a, 1)
+    if (i == 1) then
+      a(i, j) = 0
+    else
+      a(i, j) = a(i - 1, j) + b(i, j)
+    end if
+  end do
+end do","do j = 1, size(a, 2)
+  a(1, j) = 0
+
+  do i = 2, size(a, 1)
+    a(i, j) = a(i - 1, j) + b(i, j)
+  end do
+end do","{2} showLineNumbers
+do i = 1, size(a, 1)
+  if (i < 10) then
+    a(i) = 0
+  else
+    a(i) = 1
+end do","do i = 1, 9
+  a(i) = 0
+end do
+
+do i = 10, size(a, 1)
+  a(i) = 1
+end do","{2} showLineNumbers
+do i = 1, size(a, 1)
+  if (modulo(i, 2) == 0) then
+    a(i) = 1
+  else
+    a(i) = 0
+  end if
+end do","do i = 1, size(a, 1), 2
+    a(i) = 0
+    a(i + 1) = 1
+end do"
+PWR050,PWR050: Consider applying multithreading parallelism to forall loop,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR050/README.md,2,1,"void example(double *D, double *X, double *Y, int n, double a) {
+  for (int i = 0; i < n; ++i) {
+    D[i] = a * X[i] + Y[i];
+  }
+}","void example(double *D, double *X, double *Y, int n, double a) {
+  #pragma omp parallel default(none) shared(D, X, Y, a, n)
+  {
+    #pragma omp for schedule(auto)
+    for (int i = 0; i < n; ++i) {
+      D[i] = a * X[i] + Y[i];
+    }
+  } // end parallel
+}",,,,,,
+PWR050,PWR050: Consider applying multithreading parallelism to forall loop,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR050/README.md,2,1,"subroutine example(D, X, Y, a)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(out) :: D(:)
+  real(kind=real32), intent(in) :: X(:), Y(:)
+  real(kind=real32), intent(in) :: a
+  integer :: i
+
+  do i = 1, size(D, 1)
+    D(i) = a * X(i) + Y(i)
+  end do
+end subroutine example","subroutine example(D, X, Y, a)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(out) :: D(:)
+  real(kind=real32), intent(in) :: X(:), Y(:)
+  real(kind=real32), intent(in) :: a
+  integer :: i
+
+  !$omp parallel do default(none) shared(D, X, Y, a) schedule(auto)
+  do i = 1, size(D, 1)
+    D(i) = a * X(i) + Y(i)
+  end do
+end subroutine example",,,,,,
+PWR051,PWR051: Consider applying multithreading parallelism to scalar reduction loop,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR051/README.md,2,1,"double example(double *A, int n) {
+  double sum = 0.0;
+
+  for (int i = 0; i < n; ++i) {
+    sum += A[i];
+  }
+
+  return sum;
+}","double example(double *A, int n) {
+  double sum = 0.0;
+
+  #pragma omp parallel default(none) shared(A, n, sum) private(i)
+  {
+    #pragma omp for reduction(+: sum) schedule(auto)
+    for (int i = 0; i < n; ++i) {
+      sum += A[i];
+    }
+  } // end parallel
+
+  return sum;
+}",,,,,,
+PWR051,PWR051: Consider applying multithreading parallelism to scalar reduction loop,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR051/README.md,2,1,"function example(A) result(sum)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(in) :: A(:)
+  real(kind=real32) :: sum
+  integer :: i
+
+  sum = 0.0
+  do i = 1, size(A, 1)
+    sum = sum + A(i)
+  end do
+end function example","function example(A) result(sum)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(in) :: A(:)
+  real(kind=real32) :: sum
+  integer :: i
+
+  sum = 0.0
+  !$omp parallel do default(none) shared(A) private(i) reduction(+: sum) &
+  !$omp& schedule(auto)
+  do i = 1, size(A, 1)
+    sum = sum + A(i)
+  end do
+end function example",,,,,,
+PWR052,PWR052: Consider applying multithreading parallelism to sparse reduction loop,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR052/README.md,2,1,"void example(double *A, int *nodes, int n) {
+  for (int nel = 0; nel < n; ++nel) {
+    A[nodes[nel]] += nel * 1;
+  }
+}","void example(double *A, int *nodes, int n) {
+  #pragma omp parallel default(none) shared(A, n, nodes) private(nel)
+  {
+    #pragma omp for schedule(auto)
+    for (int nel = 0; nel < n; ++nel) {
+      #pragma omp atomic update
+      A[nodes[nel]] += nel * 1;
+    }
+  } // end parallel
+}",,,,,,
+PWR052,PWR052: Consider applying multithreading parallelism to sparse reduction loop,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR052/README.md,2,1,"subroutine example(A, nodes)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(inout) :: A(:)
+  integer, intent(in) :: nodes(:)
+  integer :: nel
+
+  do nel = 1, size(nodes, 1)
+    A(nodes(nel)) = A(nodes(nel)) + (nel * 1)
+  end do
+end subroutine example","subroutine example(A, nodes)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(inout) :: A(:)
+  integer, intent(in) :: nodes(:)
+  integer :: nel
+
+  !$omp parallel do default(none) shared(A, nodes) private(nel) schedule(auto)
+  do nel = 1, size(nodes, 1)
+    !$omp atomic update
+    A(nodes(nel)) = A(nodes(nel)) + (nel * 1)
+  end do
+end subroutine example",,,,,,
+PWR053,PWR053: Consider applying vectorization to forall loop,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR053/README.md,2,1,"void example(double *D, double *X, double *Y, int n, double a) {
+  for (int i = 0; i < n; ++i) {
+    D[i] = a * X[i] + Y[i];
+  }
+}","void example(double *D, double *X, double *Y, int n, double a) {
+  #pragma omp simd
+  for (int i = 0; i < n; ++i) {
+    D[i] = a * X[i] + Y[i];
+  }
+}",,,,,,
+PWR053,PWR053: Consider applying vectorization to forall loop,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR053/README.md,2,1,"pure subroutine example(D, X, Y, a)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(out) :: D(:)
+  real(kind=real32), intent(in) :: X(:), Y(:)
+  real(kind=real32), intent(in) :: a
+  integer :: i
+
+  do i = 1, size(D, 1)
+    D(i) = a * X(i) + Y(i)
+  end do
+end subroutine example","pure subroutine example(D, X, Y, a)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(out) :: D(:)
+  real(kind=real32), intent(in) :: X(:), Y(:)
+  real(kind=real32), intent(in) :: a
+  integer :: i
+
+  !$omp simd
+  do i = 1, size(D, 1)
+    D(i) = a * X(i) + Y(i)
+  end do
+end subroutine example",,,,,,
+PWR054,PWR054: Consider applying vectorization to scalar reduction loop,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR054/README.md,2,1,"__attribute__((pure)) double example(double *A, int n) {
+  double sum = 0.0;
+
+  for (int i = 0; i < n; ++i) {
+    sum += A[i];
+  }
+
+  return sum;
+}","__attribute__((pure)) double example(double *A, int n) {
+  double sum = 0.0;
+
+  #pragma omp simd reduction(+: sum)
+  for (int i = 0; i < n; ++i) {
+    sum += A[i];
+  }
+
+  return sum;
+}",,,,,,
+PWR054,PWR054: Consider applying vectorization to scalar reduction loop,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR054/README.md,2,1,"pure function example(A) result(sum)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(in) :: A(:)
+  real(kind=real32) :: sum
+  integer :: i
+
+  sum = 0.0
+  do i = 1, size(A, 1)
+    sum = sum + A(i)
+  end do
+end function example","pure function example(A) result(sum)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(in) :: A(:)
+  real(kind=real32) :: sum
+  integer :: i
+
+  sum = 0.0
+  !$omp simd reduction(+: sum)
+  do i = 1, size(A, 1)
+    sum = sum + A(i)
+  end do
+end function example",,,,,,
+PWR055,PWR055: Consider applying offloading parallelism to forall loop,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR055/README.md,2,1,"void example(double *D, double *X, double *Y, int n, double a) {
+  for (int i = 0; i < n; ++i) {
+    D[i] = a * X[i] + Y[i];
+  }
+}","void example(double *D, double *X, double *Y, int n, double a) {
+  #pragma acc data copyin(X[0:n], Y[0:n], a, n) copyout(D[0:n])
+  #pragma acc parallel
+  #pragma acc loop
+  for (int i = 0; i < n; ++i) {
+    D[i] = a * X[i] + Y[i];
+  }
+}",,,,,,
+PWR055,PWR055: Consider applying offloading parallelism to forall loop,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR055/README.md,2,1,"subroutine example(D, X, Y, a)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(out) :: D(:)
+  real(kind=real32), intent(in) :: X(:), Y(:)
+  real(kind=real32), intent(in) :: a
+  integer :: i
+
+  do i = 1, size(D, 1)
+    D(i) = a * X(i) + Y(i)
+  end do
+end subroutine example","subroutine example(D, X, Y, a)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(out) :: D(:)
+  real(kind=real32), intent(in) :: X(:), Y(:)
+  real(kind=real32), intent(in) :: a
+  integer :: i
+
+  !$acc data copyin(X, Y, a) copyout(D)
+  !$acc parallel
+  !$acc loop
+  do i = 1, size(D, 1)
+    D(i) = a * X(i) + Y(i)
+  end do
+  !$acc end parallel
+  !$acc end data
+end subroutine example",,,,,,
+PWR056,PWR056: Consider applying offloading parallelism to scalar reduction loop,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR056/README.md,2,1,"double example(double *A, int n) {
+  double sum = 0;
+
+  for (int i = 0; i < n; ++i) {
+    sum += A[i];
+  }
+
+  return sum;
+}","double example(double *A, int n) {
+  double sum = 0;
+
+  #pragma acc data copyin(A[0:n], n) copy(sum)
+  #pragma acc parallel
+  #pragma acc loop reduction(+: sum)
+  for (int i = 0; i < n; ++i) {
+    sum += A[i];
+  }
+
+  return sum;
+}",,,,,,
+PWR056,PWR056: Consider applying offloading parallelism to scalar reduction loop,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR056/README.md,2,1,"function example(A) result(sum)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(in) :: A(:)
+  real(kind=real32) :: sum
+  integer :: i
+
+  sum = 0.0
+  do i = 1, size(A, 1)
+    sum = sum + A(i)
+  end do
+end function example","function example(A) result(sum)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(in) :: A(:)
+  real(kind=real32) :: sum
+  integer :: i
+
+  sum = 0.0
+
+  !$acc data copyin(A) copy(sum)
+  !$acc parallel
+  !$acc loop reduction(+: sum)
+  do i = 1, size(A, 1)
+    sum = sum + A(i)
+  end do
+  !$acc end parallel
+  !$acc end data
+end function example",,,,,,
+PWR057,PWR057: Consider applying offloading parallelism to sparse reduction loop,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR057/README.md,2,1,"void example(double *A, int *nodes, int n) {
+  for (int nel = 0; nel < n; ++nel) {
+    A[nodes[nel]] += nel * 1;
+  }
+}","void example(double *A, int *nodes, int n) {
+  #pragma acc data copyin(n, nodes[0:n]) copy(A[:])
+  #pragma acc parallel
+  #pragma acc loop
+  for (int nel = 0; nel < n; ++nel) {
+    #pragma acc atomic update
+    A[nodes[nel]] += nel * 1;
+  }
+}",,,,,,
+PWR057,PWR057: Consider applying offloading parallelism to sparse reduction loop,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR057/README.md,2,1,"subroutine example(A, nodes)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(inout) :: A(:)
+  integer, intent(in) :: nodes(:)
+  integer :: nel
+
+  do nel = 1, size(nodes, 1)
+    A(nodes(nel)) = A(nodes(nel)) + (nel * 1)
+  end do
+end subroutine example","subroutine example(A, nodes)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(inout) :: A(:)
+  integer, intent(in) :: nodes(:)
+  integer :: nel
+
+  !$acc data copyin(nodes) copy(A)
+  !$acc parallel
+  !$acc loop
+  do nel = 1, size(nodes, 1)
+    !$acc atomic update
+    A(nodes(nel)) = A(nodes(nel)) + (nel * 1)
+  end do
+  !$acc end parallel
+  !$acc end data
+end subroutine example",,,,,,
+PWR060,PWR060: Consider loop fission to separate gather memory access pattern,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR060/README.md,2,1,"for (int i = 0; i < n; ++i) {
+  D[i] = a * X[index[i]] + Y[i]
+}","for (int i = 0; i < n; ++i) {
+  X_index_i[i] = X[index[i]];
+}
+for (int i = 0; i < n; ++i) {
+  D[i] = a * X_index_i[i] + Y[i]
+}",,,,,,
+PWR060,PWR060: Consider loop fission to separate gather memory access pattern,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR060/README.md,2,1,"do i = 1, size(D, 1)
+  D(i) = a * X(index(i)) + Y(i)
+end do","real(kind=real32), allocatable :: X_index_i(:)
+allocate(X_index_i(size(X, 1)))
+
+do i = 1, size(X, 1)
+  X_index_i(i) = X(index(i))
+end do
+do i = 1, size(D, 1)
+  D(i) = a * X_index_i(i) + Y(i)
+end do",,,,,,
+PWR062,PWR062: Consider loop interchange by removing accumulation on array value,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR062/README.md,3,2,"void matmul(int n, const double *A, const double *B, double *C) {
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      C[i * n + j] = 0.0;
+      for (int k = 0; k < n; ++k) {
+        C[i * n + j] += A[i * n + k] * B[k * n + j];
+      }
+    }
+  }
+}","void matmul(int n, const double *A, const double *B, double *C) {
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      C[i * n + j] = 0.0;
+    }
+  }
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      for (int k = 0; k < n; ++k) {
+        C[i * n + j] += A[i * n + k] * B[k * n + j];
+      }
+    }
+  }
+}","void matmul(int n, const double *A, const double *B, double *C) {
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      C[i * n + j] = 0.0;
+    }
+  }
+  for (int i = 0; i < n; ++i) {
+    for (int k = 0; k < n; ++k) {
+      for (int j = 0; j < n; ++j) {
+        C[i * n + j] += A[i * n + k] * B[k * n + j];
+      }
+    }
+  }
+}",,,,,
+PWR062,PWR062: Consider loop interchange by removing accumulation on array value,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR062/README.md,3,2,"pure subroutine matmul(n, A, B, C)
+  implicit none
+  integer, intent(in) :: n
+  real, dimension(:, :), intent(in) :: A, B
+  real, dimension(:, :), intent(out) :: C
+  integer :: i, j, k
+
+  do j = 1, n
+    do i = 1, n
+      C(i, j) = 0
+      do k = 1, n
+        C(i, j) = C(i, j) + A(i, k) * B(k, j)
+      end do
+    end do
+  end do
+end subroutine matmul","pure subroutine matmul(n, A, B, C)
+  implicit none
+  integer, intent(in) :: n
+  real, dimension(:, :), intent(in) :: A, B
+  real, dimension(:, :), intent(out) :: C
+  integer :: i, j, k
+
+  ! No need to write an explicit loop to zero the whole matrix
+  C = 0
+
+  do j = 1, n
+    do i = 1, n
+      do k = 1, n
+        C(i, j) = C(i, j) + A(i, k) * B(k, j)
+      end do
+    end do
+  end do
+end subroutine matmul","pure subroutine matmul(n, A, B, C)
+  implicit none
+  integer, intent(in) :: n
+  real, dimension(:, :), intent(in) :: A, B
+  real, dimension(:, :), intent(out) :: C
+  integer :: i, j, k
+
+  C = 0
+
+  do j = 1, n
+    do k = 1, n
+      do i = 1, n
+        C(i, j) = C(i, j) + A(i, k) * B(k, j)
+      end do
+    end do
+  end do
+end subroutine matmul",,,,,
