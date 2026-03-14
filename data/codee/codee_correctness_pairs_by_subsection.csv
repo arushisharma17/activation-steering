@@ -1,0 +1,966 @@
+check_id,title,subsection_language,source_url,num_code_blocks_in_subsection,num_variants,base_code,corrected_code_1,corrected_code_2,corrected_code_3,corrected_code_4,corrected_code_5,corrected_code_6,corrected_code_7
+PWR001,PWR001: Pass global variables as function arguments,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR001/README.md,2,1,"#define N 100
+
+int A[N];
+int B[N];
+
+void init() {
+  for (int i = 0; i < N; i++) {
+    A[i] = i;
+  }
+}
+
+void add() {
+  for (int i = 0; i < N; i++) {
+    B[i] = A[i] + 1;
+  }
+}
+
+void example() {
+  init();
+  add();
+}","#define N 100
+
+int A[N];
+int B[N];
+
+void init(int *A) {
+  for (int i = 0; i < N; i++) {
+    A[i] = i;
+  }
+}
+
+void add(int *A, int *B) {
+  for (int i = 0; i < N; i++) {
+    B[i] = A[i] + 1;
+  }
+}
+
+void example() {
+  init(A);
+  add(A, B);
+}",,,,,,
+PWR001,PWR001: Pass global variables as function arguments,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR001/README.md,2,1,"module globalsMod
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32) :: global_a
+end module globalsMod
+
+pure function example()
+  use iso_fortran_env, only: real32
+  use globalsMod
+  implicit none
+  real(kind=32) :: example
+  example = global_a
+end function","module globalsMod
+  implicit none
+  real :: global_a
+end module globalsMod
+
+pure real function example()
+  use globalsMod, only : global_a
+  implicit none
+  example = global_a
+end function example",,,,,,
+PWR002,PWR002: Declare scalar variables in the smallest possible scope,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR002/README.md,3,2,"void example() {
+  int t;
+  int result[10];
+
+  for (int i = 0; i < 10; i++) {
+    t = i + 1;
+    result[i] = t;
+  }
+}","void example() {
+  int result[10];
+
+  for (int i = 0; i < 10; i++) {
+    int t = i + 1;
+    result[i] = t;
+  }
+}","void example() {
+  int result[10];
+
+  #pragma omp parallel for default(none) shared(result)
+  for (int i = 0; i < 10; i++) {
+    int t = i + 1;
+    result[i] = t;
+  }
+}",,,,,
+PWR002,PWR002: Declare scalar variables in the smallest possible scope,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR002/README.md,3,2,"subroutine example()
+  implicit none
+  integer :: t
+  integer, dimension(10) :: result
+  integer :: i
+
+  do i = 1, 10
+    t = i + 1
+    result(i) = t
+  end do
+end subroutine example","subroutine example()
+  implicit none
+  integer, dimension(10) :: result
+  integer :: i
+
+  do i = 1, 10
+    block
+      integer :: t
+      t = i + 1
+      result(i) = t
+    end block
+  end do
+end subroutine example","subroutine example()
+  implicit none
+  integer, dimension(10) :: result
+  integer :: i
+
+  !$omp parallel do default(none) shared(result) private(i)
+  do i = 1, 10
+    block
+      integer :: t
+      t = i + 1
+      result(i) = t
+    end block
+  end do
+  !$omp end parallel do
+end subroutine example",,,,,
+PWR004,PWR004: Declare OpenMP scoping for all variables,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR004/README.md,2,1,"void example() {
+  int factor = 42;
+  int result[10];
+
+  #pragma omp parallel for
+  for (int i = 0; i < 10; i++) {
+    result[i] = factor * i;
+  }
+}","void example() {
+  int factor = 42;
+  int result[10];
+
+  #pragma omp parallel for default(none) shared(result, factor) private(i)
+  for (int i = 0; i < 10; i++) {
+    result[i] = factor * i;
+  }
+}",,,,,,
+PWR004,PWR004: Declare OpenMP scoping for all variables,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR004/README.md,2,1,"subroutine example()
+  integer :: factor
+  integer :: result(10)
+
+  factor = 42
+
+  !$omp parallel do
+  do i = 1, 10
+    result(i) = factor * i
+  end do
+end subroutine example","subroutine example()
+  integer :: factor
+  integer :: result(10)
+
+  factor = 42
+
+  !$omp parallel do default(none) shared(factor, result) private(i)
+  do i = 1, 10
+    result(i) = factor * i
+  end do
+end subroutine example",,,,,,
+PWR005,PWR005: Disable default OpenMP scoping,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR005/README.md,3,2,"void example() {
+  int t;
+  int result[10];
+
+  #pragma omp parallel for
+  for (int i = 0; i < 10; i++) {
+    t = i + 1;
+    result[i] = t;
+  }
+}","void example() {
+  int t;
+  int result[10];
+
+  #pragma omp parallel for default(none)
+  for (int i = 0; i < 10; i++) {
+    t = i + 1;
+    result[i] = t;
+  }
+}","void example() {
+  int t;
+  int result[10];
+
+  #pragma omp parallel for default(none) shared(result) private(i, t)
+  for (int i = 0; i < 10; i++) {
+    t = i + 1;
+    result[i] = t;
+  }
+}",,,,,
+PWR005,PWR005: Disable default OpenMP scoping,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR005/README.md,3,2,"subroutine example()
+  integer :: i, t
+  integer :: result(10)
+
+  !$omp parallel do
+  do i = 1, 10
+    t = i + 1;
+    result(i) = t;
+  end do
+end subroutine example","subroutine example()
+  integer :: i, t
+  integer :: result(10)
+
+  !$omp parallel do default(none)
+  do i = 1, 10
+    t = i + 1;
+    result(i) = t;
+  end do
+end subroutine example","subroutine example()
+  integer :: i, t
+  integer :: result(10)
+
+  !$omp parallel do default(none) shared(result) private(i, t)
+  do i = 1, 10
+    t = i + 1;
+    result(i) = t;
+  end do
+end subroutine example",,,,,
+PWR079,PWR079: Avoid undefined behavior due to uninitialized variables,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR079/README.md,8,7,"{5} showLineNumbers
+// example_array.c
+#include <stdio.h>
+
+__attribute__((pure)) double sum_array(double *array, size_t size) {
+  double sum;
+
+  for (size_t i = 0; i < size; ++i) {
+    sum += array[i];
+  }
+
+  return sum;
+}
+
+int main() {
+  double array[] = {0.24, 0.33, 0.17, 0.89, 0.05};
+  printf(""Sum is: %f\n"", sum_array(array, 5));
+
+  return 0;
+}","$ gcc --version
+gcc (Debian 14.2.0-8) 14.2.0
+$ gcc -O2 example_array.c -o example_array_gcc
+$ ./example_array_gcc 
+Sum is: 1.680000","$ clang --version
+Debian clang version 19.1.5 (1)
+$ clang -O2 example_array.c -o example_array_clang
+$ ./example_array_clang 
+Sum is: nan",double sum = 0.0;,"{14} showLineNumbers
+// example_matrix.c
+#include <stdio.h>
+
+void perform_computation(double *matrix_a, double *matrix_b) {
+  if (matrix_a == NULL || matrix_b == NULL) {
+    printf(""A matrix is NULL; skipping computation\n"");
+    return;
+  }
+
+  printf(""Performing computation...\n"");
+}
+
+int main() {
+  double *matrix_a, *matrix_b;
+  perform_computation(matrix_a, matrix_b);
+
+  return 0;
+}","$ gcc -O2 example_matrix.c -o example_matrix_gcc
+$ ./example_matrix_gcc 
+A matrix is NULL; skipping computation","$ clang -O2 example_matrix.c -o example_matrix_clang
+$ ./example_matrix_clang 
+Performing computation...","double *matrix_a = NULL, *matrix_b = NULL;"
+PWR079,PWR079: Avoid undefined behavior due to uninitialized variables,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR079/README.md,8,7,"{16} showLineNumbers
+! example_array.f90
+program main
+  use iso_fortran_env, only: real32
+  implicit none
+
+  real(kind=real32) :: array(5)
+  array = [0.24, 0.33, 0.17, 0.89, 0.05]
+
+  print *, ""Sum is:"", sum_array(array)
+
+contains
+
+  pure real(kind=real32) function sum_array(array)
+    implicit none
+    real(kind=real32), intent(in) :: array(:)
+    real(kind=real32) :: sum
+    integer :: i
+
+    do i = 1, size(array, 1)
+      sum = sum + array(i)
+    end do
+
+    sum_array = sum
+  end function sum_array
+
+end program main","$ gfortran --version
+GNU Fortran (Debian 14.2.0-8) 14.2.0
+$ gfortran -O2 example_array.f90 -o example_array_gfortran
+$ ./example_array_gfortran 
+ Sum is:   1.67999995","$ flang-new --version
+Debian flang-new version 19.1.5 (1)
+$ flang-new -O2 example_array.f90 -o example_array_flang
+$ ./example_array_flang 
+ Sum is: NaN","real(kind=real32) :: sum
+
+sum = 0","program main
+  implicit none
+  integer, pointer :: array(:)
+
+  if (.not. associated(array)) then
+    print *, ""Undefined behavior""
+  end if
+end program main","program main
+  implicit none
+  integer, allocatable :: array(:)
+
+  if (.not. allocated(array)) then
+    print *, ""Defined behavior""
+  end if
+end program main","type :: t
+  integer, pointer :: array(:) => null()
+end type","integer, pointer :: array(:)
+
+nullify(array)"
+PWR080,PWR080: Conditionally initialized variables can lead to undefined behavior,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR080/README.md,4,3,"{14,30} showLineNumbers
+// example.c
+#include <stdio.h>
+
+typedef enum {
+  OPTION_HALF,
+  OPTION_DOUBLE,
+  OPTION_UNKNOWN,
+} TransformOption;
+
+__attribute__((pure)) double transform_and_sum(const double *array, size_t size,
+                                               TransformOption option) {
+  double sum = 0.0;
+
+  double factor;
+  if (option == OPTION_HALF) {
+    factor = 0.5;
+  } else if (option == OPTION_DOUBLE) {
+    factor = 2.0;
+  }
+
+  for (size_t i = 0; i < size; ++i) {
+    sum += array[i] * factor;
+  }
+
+  return sum;
+}
+
+int main() {
+  double array[] = {0.25, 0.25, 0.25, 0.25};
+  printf(""Sum is: %f\n"", transform_and_sum(array, 4, OPTION_UNKNOWN));
+
+  return 0;
+}","$ gcc --version
+gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
+$ gcc -O2 example.c -o example_gcc
+$ ./example_gcc 
+Sum is: 0.500000","$ clang --version
+Ubuntu clang version 18.1.3 (1ubuntu1)
+$ clang -O2 example.c -o example_clang
+$ ./example_clang 
+Sum is: 2.000000","// solution.c
+// Identity transformation by default
+double factor = 1.0;",,,,
+PWR080,PWR080: Conditionally initialized variables can lead to undefined behavior,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR080/README.md,4,3,"{17,28} showLineNumbers
+! example.f90
+
+module options
+  implicit none
+  integer, parameter :: OPTION_HALF   = 1
+  integer, parameter :: OPTION_DOUBLE = 2
+  integer, parameter :: OPTION_UNKNOWN = 3
+end module options
+
+program main
+  use iso_fortran_env, only: real32
+  use options, only: OPTION_HALF, OPTION_DOUBLE, OPTION_UNKNOWN
+  implicit none
+
+  real(kind=real32) :: array(4)
+  array = [0.25, 0.25, 0.25, 0.25]
+
+  print *, ""Sum is:"", transform_and_sum(array, OPTION_UNKNOWN)
+
+contains
+
+  pure real(kind=real32) function transform_and_sum(array, option)
+    implicit none
+
+    real(kind=real32), intent(in) :: array(:)
+    integer, intent(in) :: option
+
+    real(kind=real32) :: sum
+    real(kind=real32) :: factor
+    integer :: i
+
+    sum = 0.0
+
+    if (option == OPTION_HALF) then
+      factor = 0.5
+    else if (option == OPTION_DOUBLE) then
+      factor = 2.0
+    end if
+
+    do i = 1, size(array, 1)
+      sum = sum + array(i) * factor
+    end do
+
+    transform_and_sum = sum
+  end function transform_and_sum
+
+end program main","$ gfortran --version
+GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
+$ gfortran -O2 example.f90 -o example_gfortran
+$ ./example_gfortran 
+ Sum is:   0.500000","$ flang-new --version
+Ubuntu flang-new version 18.1.3 (1ubuntu1)
+$ flang-new -O2 example.f90 -o example_flang
+$ ./example_flang 
+ Sum is: 2.","! solution.f90
+real(kind=real32) :: factor
+
+! Identity transformation by default
+factor = 1.0",,,,
+PWR081,PWR081: Uninitialized output arguments can lead to undefined behavior,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR081/README.md,4,3,"{19,26,32,49,50} showLineNumbers
+! example.f90
+
+module StatsMod
+  use iso_fortran_env, only: real32
+  implicit none
+  private
+
+  public :: computeStats, statsType
+
+  type :: statsType
+    real(kind=real32) :: mean
+    real(kind=real32) :: stddev
+  end type statsType
+
+contains
+
+  pure subroutine computeStats(data, result)
+    real(kind=real32), intent(in) :: data(:)
+    type(statsType), intent(out) :: result
+
+    integer :: i, len
+
+    ! We can't compute stddev from a single data point
+    len = size(data)
+    if (len <= 1) then
+      return
+    end if
+
+    ! Also abort if there are invalid data points
+    do i = 1, len
+      if (data(i) < -900.0) then
+        return
+      end if
+    end do
+
+    result%mean = sum(data) / len
+    result%stddev = sqrt(sum((data - result%mean)**2) / (len - 1))
+  end subroutine computeStats
+end module StatsMod
+
+program main
+  use iso_fortran_env, only: real32
+  use StatsMod, only: computeStats, statsType
+  implicit none
+
+  real(kind=real32), dimension(5) :: sensorData = [1.0, -999.0, 3.0, 5.0, 7.0]
+  type(statsType) :: stats
+
+  call computeStats(sensorData, stats)
+  print '(A, F4.2, A, F4.2)', ""Mean = "", stats%mean, "" Stddev = "", stats%stddev
+end program main","$ gfortran --version
+GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
+$ gfortran -O2 example.f90 -o example_gfortran
+$ ./example_gfortran 
+Mean = 0.00 Stddev = 0.00","$ flang-new --version
+Ubuntu flang-new version 18.1.3 (1ubuntu1)
+$ flang-new -O2 example.f90 -o example_flang
+$ ./example_flang 
+Mean = **** Stddev = ****","! solution.f90
+
+type(statsType), intent(out) :: result
+
+! <...>
+
+result%mean = 0.0
+result%stddev = 0.0",,,,
+PWR082,PWR082: Remove unused variables,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR082/README.md,2,1,"{3} showLineNumbers
+// example.c
+__attribute__((pure)) int sumArray(const int n, const int *array) {
+  int t, sum = 0;
+
+  for (int i = 0; i < n; ++i) {
+    sum += array[i];
+  }
+
+  return sum;
+}","{3} showLineNumbers
+// solution.c
+__attribute__((pure)) int sumArray(const int n, const int *array) {
+  int sum = 0;
+
+  for (int i = 0; i < n; ++i) {
+    sum += array[i];
+  }
+
+  return sum;
+}",,,,,,
+PWR082,PWR082: Remove unused variables,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWR082/README.md,2,1,"{5} showLineNumbers
+! example.f90
+pure function sumArray(array) result(sum)
+  implicit none
+  integer, intent(in) :: array(:)
+  integer :: t, sum, i
+
+  sum = 0
+
+  do i = 1, size(array)
+    sum = sum + array(i)
+  end do
+end function sumArray","{5} showLineNumbers
+! solution.f90
+pure function sumArray(array) result(sum)
+  implicit none
+  integer, intent(in) :: array(:)
+  integer :: sum, i
+
+  sum = 0
+
+  do i = 1, size(array)
+    sum = sum + array(i)
+  end do
+end function sumArray",,,,,,
+PWD002,PWD002: Unprotected multithreading reduction operation,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD002/README.md,3,2,"void foo() {
+  int array[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  int sum = 0;
+
+  #pragma omp parallel for default(none) shared(array, sum)
+  for (int i = 0; i < 10; i++) {
+    sum += array[i];
+  }
+}","void foo() {
+  int array[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  int sum = 0;
+
+  #pragma omp parallel for default(none) shared(array, sum)
+  for (int i = 0; i < 10; i++) {
+    #pragma omp atomic update
+    sum += array[i];
+  }
+}","void foo() {
+  int array[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  int sum = 0;
+
+  #pragma omp parallel for default(none) shared(array) reduction(+: sum)
+  for (int i = 0; i < 10; i++) {
+    sum += array[i];
+  }
+}",,,,,
+PWD002,PWD002: Unprotected multithreading reduction operation,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD002/README.md,3,2,"subroutine example(array)
+  integer, intent(in) :: array(:)
+  integer :: i, sum
+
+  sum = 0
+
+  !$omp parallel do default(none) private(i) shared(array, sum)
+  do i = 1, size(array, 1)
+    sum = sum + array(i)
+  end do
+end subroutine example","subroutine example(array)
+  implicit none
+  integer, intent(in) :: array(:)
+  integer :: i, sum
+
+  sum = 0
+
+  !$omp parallel do default(none) private(i) shared(array, sum)
+  do i = 1, size(array, 1)
+    !$omp atomic update
+    sum = sum + array(i)
+  end do
+end subroutine example","subroutine example(array)
+  implicit none
+  integer, intent(in) :: array(:)
+  integer :: i, sum
+
+  sum = 0
+
+  !$omp parallel do default(none) private(i) shared(array) reduction(+: sum)
+  do i = 1, size(array, 1)
+    sum = sum + array(i)
+  end do
+end subroutine example",,,,,
+PWD003,PWD003: Missing array range in data copy to the GPU,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD003/README.md,4,3,"void foo(int *a, int *b, int *sum, int size) {
+  #pragma omp target map(to: a, b) map(from: sum)
+  #pragma omp parallel for default(none) shared(a, b, sum, size)
+  for (int i = 0; i < size; i++) {
+    sum[i] = a[i] + b[i];
+  }
+}","void foo(int *a, int *b, int *sum, int size) {
+  #pragma omp target map(to: a[0:size], b[0:size]) map(from: sum[0:size])
+  #pragma omp parallel for default(none) shared(a, b, sum, size)
+  for (int i = 0; i < size; i++) {
+    sum[i] = a[i] + b[i];
+  }
+}","void foo(int *a, int *b, int *sum, int size) {
+  #pragma acc data copyin(a, b) copyout(sum)
+  #pragma acc parallel loop
+  for (int i = 0; i < size; i++) {
+    sum[i] = a[i] + b[i];
+  }
+}","void foo(int *a, int *b, int *sum, int size) {
+  #pragma acc data copyin(a[0:size], b[0:size]) copyout(sum[0:size])
+  #pragma acc parallel loop
+  for (int i = 0; i < size; i++) {
+    sum[i] = a[i] + b[i];
+  }
+}",,,,
+PWD003,PWD003: Missing array range in data copy to the GPU,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD003/README.md,3,2,"subroutine foo(a, b, sum, size)
+  implicit none
+  integer, dimension(*), intent(in) :: a, b
+  integer, dimension(*), intent(out) :: sum
+  integer, intent(in) :: size
+  integer :: i
+
+  !$omp target map(to: a, b) map(from: sum)
+  !$omp parallel do default(none) private(i) shared(a, b, sum, size)
+  do i = 1, size
+    sum(i) = a(i) + b(i)
+  end do
+  !$omp end parallel do
+  !$omp end target
+end subroutine foo","$ gfortran --version
+GNU Fortran (Debian 12.2.0-14) 12.2.0
+$ gfortran foo.f90 -fopenmp
+foo.f90:8:23:
+
+    8 |   !$omp target map(to: a, b) map(from: sum)
+      |                       1
+Error: Assumed size array ‘a’ in MAP clause at (1)
+foo.f90:8:25:
+
+    8 |   !$omp target map(to: a, b) map(from: sum)
+      |                         1
+Error: Assumed size array ‘b’ in MAP clause at (1)
+foo.f90:8:39:
+
+    8 |   !$omp target map(to: a, b) map(from: sum)
+      |                                       1
+Error: Assumed size array ‘sum’ in MAP clause at (1)","subroutine foo(a, b, sum, size)
+  implicit none
+  integer, dimension(*), intent(in) :: a, b
+  integer, dimension(*), intent(out) :: sum
+  integer, intent(in) :: size
+  integer :: i
+
+  !$omp target map(to: a(1:size), b(1:size)) map(from: sum(1:size))
+  !$omp parallel do default(none) private(i) shared(a, b, sum, size)
+  do i = 1, size
+    sum(i) = a(i) + b(i)
+  end do
+  !$omp end parallel do
+  !$omp end target
+end subroutine foo",,,,,
+PWD004,PWD004: Out-of-memory-bounds array access,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD004/README.md,2,1,"void foo() {
+  int A[100];
+  for (int i = 0; i < 100; i++) {
+    A[i + 1] = 1;
+  }
+}","void foo() {
+  int A[100];
+  for (int i = 0; i < 100; i++) {
+    A[i] = 1;
+  }
+}",,,,,,
+PWD004,PWD004: Out-of-memory-bounds array access,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD004/README.md,2,1,"subroutine example()
+  implicit none
+  integer :: A(100)
+  integer :: i
+
+  do i = 1, size(A, 1)
+    A(i + 1) = 1
+  end do
+end subroutine example","subroutine example()
+  implicit none
+  integer :: A(100)
+  integer :: i
+
+  do i = 1, size(A, 1)
+    A(i) = 1
+  end do
+end subroutine example",,,,,,
+PWD005,PWD005: Array range copied to or from the GPU does not cover the used range,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD005/README.md,2,1,"void foo() {
+  int A[100], B[100], sum[100];
+  #pragma omp target map(to: A[0:50], B[0:50]) map(from: sum[0:50])
+  #pragma omp parallel for shared(A, B, sum)
+  for (int i = 0; i < 100; i++) {
+    sum[i] = A[i] + B[i];
+  }
+}","void foo() {
+  int A[100], B[100], sum[100];
+  #pragma omp target map(to: A[0:100], B[0:100]) map(from: sum[0:100])
+  #pragma omp parallel for shared(A, B, sum)
+  for (int i = 0; i < 100; i++) {
+    sum[i] = A[i] + B[i];
+  }
+}",,,,,,
+PWD005,PWD005: Array range copied to or from the GPU does not cover the used range,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD005/README.md,2,1,"subroutine example()
+  implicit none
+  integer, dimension(100) :: A, B, sum
+  integer :: i
+
+  !$omp target map(to: A(1:50), B(1:50)) map(from: sum(1:50))
+  !$omp parallel do private(i) shared(A, B, sum)
+  do i = 1, size(sum, 1)
+    sum(i) = A(i) + B(i)
+  end do
+  !$omp end target
+end subroutine example","subroutine example()
+  implicit none
+  integer, dimension(100) :: A, B, sum
+  integer :: i
+
+  !$omp target map(to: A, B) map(from: sum)
+  !$omp parallel do private(i) shared(A, B, sum)
+  do i = 1, size(sum, 1)
+    sum(i) = A(i) + B(i)
+  end do
+  !$omp end target
+end subroutine example",,,,,,
+PWD007,PWD007: Unprotected multithreading recurrence,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD007/README.md,2,1,"void foo(int *x, int *y, int size) {
+  y[0] = 0;
+
+  #pragma omp parallel for shared(x, y, size)
+  for (int i = 1; i < size; i++) {
+    y[i] = y[i - 1] + x[i - 1];
+  }
+}","void foo(int *x, int *y, int size) {
+  int scan_x = 0;
+
+  #pragma omp parallel for reduction(inscan, +:scan_x) shared(x, y, size)
+  for (int i = 0; i < size; i++) {
+    y[i] = scan_x;
+    #pragma omp scan exclusive(scan_x)
+    scan_x += x[i];
+  }
+}",,,,,,
+PWD007,PWD007: Unprotected multithreading recurrence,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD007/README.md,2,1,"subroutine foo(x, y)
+  implicit none
+  integer, intent(in) :: x(:)
+  integer, intent(inout) :: y(:)
+  integer :: i
+
+  y(1) = 0
+
+  !$omp parallel do private(i) shared(x, y)
+  do i = 2, size(y, 1)
+    y(i) = y(i - 1) + x(i - 1)
+  end do
+  !$omp end parallel do
+end subroutine foo","subroutine foo(x, y)
+  implicit none
+  integer, intent(in) :: x(:)
+  integer, intent(out) :: y(:)
+  integer :: scan_x, i
+
+  scan_x = 0
+
+  !$omp parallel do private(i) reduction(inscan, +:scan_x) shared(x, y)
+  do i = 1, size(y, 1)
+    y(i) = scan_x
+    !$omp scan exclusive(scan_x)
+    scan_x = scan_x + x(i)
+  end do
+  !$omp end parallel do
+end subroutine foo",,,,,,
+PWD008,PWD008: Unprotected multithreading recurrence due to out-of-dimension-bounds array access,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD008/README.md,2,1,"void foo() {
+  int A[5][5];
+
+  #pragma omp parallel for shared(A)
+  for (int i = 1; i < 5; ++i) {
+    for (int j = 0; j < 5; ++j) {
+      A[i][j] += A[i][j - 1];
+    }
+  }
+}","void foo() {
+  int A[5][5];
+
+  #pragma omp parallel for shared(A)
+  for (int i = 1; i < 5; ++i) {
+    for (int j = 1; j < 5; ++j) {
+      A[i][j] += A[i][j-1];
+    }
+  }
+}",,,,,,
+PWD008,PWD008: Unprotected multithreading recurrence due to out-of-dimension-bounds array access,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD008/README.md,2,1,"subroutine example(A)
+  implicit none
+  integer, intent(inout) :: A(:, :)
+  integer :: i, j
+
+  !$omp parallel do private(i, j) shared(A)
+  do j = 2, size(A, 2)
+    do i = 1, size(A, 1)
+      A(i, j) = A(i, j) + A(i - 1, j)
+    end do
+  end do
+end subroutine example","subroutine example(A)
+  implicit none
+  integer, intent(inout) :: A(:, :)
+  integer :: i, j
+
+  !$omp parallel do private(i, j) shared(A)
+  do j = 2, size(A, 2)
+    do i = 2, size(A, 1)
+      A(i, j) = A(i, j) + A(i - 1, j)
+    end do
+  end do
+end subroutine example",,,,,,
+PWD009,PWD009: Incorrect privatization in OpenMP parallel region,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD009/README.md,2,1,"void example(int m, double *A, double *B, double *C) {
+  #pragma omp parallel for default(none) private(C) shared(A, B, m)
+  for (int i = 0; i < m; i++) {
+    double temp = A[i] * B[i];
+    C[i] = C[i] + temp;
+  }
+}","void example(int m, double *A, double *B, double *C) {
+  #pragma omp parallel for default(none) shared(A, B, C, m)
+  for (int i = 0; i < m; i++) {
+    double temp = A[i] * B[i];
+    C[i] = C[i] + temp;
+  }
+}",,,,,,
+PWD009,PWD009: Incorrect privatization in OpenMP parallel region,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD009/README.md,2,1,"subroutine example(A, B, C)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(in) :: A(:), B(:)
+  real(kind=real32), intent(inout) :: C(:)
+  real(kind=real32) :: temp
+  integer :: i
+
+  !$omp parallel do default(none) private(i, temp, C) shared(A, B)
+  do i = 1, size(C, 1)
+    temp = A(i) * B(i)
+    C(i) = C(i) + temp
+  end do
+end subroutine example","subroutine example(A, B, C)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(in) :: A(:), B(:)
+  real(kind=real32), intent(inout) :: C(:)
+  real(kind=real32) :: temp
+  integer :: i
+
+  !$omp parallel do default(none) private(i, temp) shared(A, B, C)
+  do i = 1, size(C, 1)
+    temp = A(i) * B(i)
+    C(i) = C(i) + temp
+  end do
+end subroutine example",,,,,,
+PWD010,PWD010: Incorrect sharing in OpenMP parallel region,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD010/README.md,2,1,"void example(int **result, unsigned rows, unsigned cols) {
+  int i, j;
+
+  // j is implicitly shared and it should be private!
+  #pragma omp parallel for shared(result)
+  for (i = 0; i < rows; i++) {
+    for (j = 0; j < cols; j++) {
+      result[i][j] = 0;
+    }
+  }
+}","void example(int **result, unsigned rows, unsigned cols) {
+  int i, j;
+
+  #pragma omp parallel for default(none) shared(result) private(i, j)
+  for (i = 0; i < rows; i++) {
+    for (j = 0; j < cols; j++) {
+      result[i][j] = 0;
+    }
+  }
+}",,,,,,
+PWD010,PWD010: Incorrect sharing in OpenMP parallel region,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD010/README.md,2,1,"subroutine example(result)
+  implicit none
+  integer, intent(out) :: result(:, :)
+  integer :: i, j
+
+  !$omp parallel do shared(result)
+  do j = 1, size(result, 2)
+    do i = 1, size(result, 1)
+      result(i, j) = 0
+    end do
+  end do
+end subroutine example","subroutine example(result)
+  implicit none
+  integer, intent(out) :: result(:, :)
+  integer :: i, j
+
+  !$omp parallel do default(none) shared(result) private(i, j)
+  do j = 1, size(result, 2)
+    do i = 1, size(result, 1)
+      result(i, j) = 0
+    end do
+  end do
+end subroutine example",,,,,,
+PWD011,PWD011: Missing OpenMP lastprivate clause,C,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD011/README.md,2,1,"double example(int m, double *A, double *B, double *C) {
+  double liveOut;
+
+  // liveOut is private but used after the loop, so it should be lastprivate
+  #pragma omp parallel for private(liveOut) shared(A, B, C)
+  for (int i = 0; i < m; i++) {
+    liveOut = A[i] * B[i];
+    C[i] = C[i] + liveOut;
+  }
+
+  liveOut += 5;
+  return liveOut;
+}","double example(int m, double *A, double *B, double *C) {
+  double liveOut;
+
+  #pragma omp parallel for lastprivate(liveOut) shared(A, B, C)
+  for (int i = 0; i < m; i++) {
+    liveOut = A[i] * B[i];
+    C[i] = C[i] + liveOut;
+  }
+
+  liveOut += 5;
+  return liveOut;
+}",,,,,,
+PWD011,PWD011: Missing OpenMP lastprivate clause,Fortran,https://raw.githubusercontent.com/codee-com/open-catalog/main/Checks/PWD011/README.md,2,1,"real function example(A, B, C)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(in) :: A(:), B(:)
+  real(kind=real32), intent(inout) :: C(:)
+  real(kind=real32) :: liveOut
+  integer :: i
+
+  !$omp parallel do private(i, liveOut) shared(A, B, C)
+  do i = 1, size(C, 1)
+    liveOut = A(i) * B(i)
+    C(i) = C(i) + liveOut
+  end do
+
+  liveOut = liveOut + 5
+  example = liveOut
+end function example","real function example(A, B, C)
+  use iso_fortran_env, only: real32
+  implicit none
+  real(kind=real32), intent(in) :: A(:), B(:)
+  real(kind=real32), intent(inout) :: C(:)
+  real(kind=real32) :: liveOut
+  integer :: i
+
+  !$omp parallel do lastprivate(liveOut) private(i) shared(A, B, C)
+  do i = 1, size(C, 1)
+    liveOut = A(i) * B(i)
+    C(i) = C(i) + liveOut
+  end do
+
+  liveOut = liveOut + 5
+  example = liveOut
+end function example",,,,,,
