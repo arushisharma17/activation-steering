@@ -1,0 +1,48 @@
+diff --git a/pandas/tests/arithmetic/test_period.py b/pandas/tests/arithmetic/test_period.py
+index 03aa9acd6b..abb667260f 100644
+--- a/pandas/tests/arithmetic/test_period.py
++++ b/pandas/tests/arithmetic/test_period.py
+@@ -127,7 +127,7 @@ class TestPeriodArrayLikeComparisons:
+ class TestPeriodIndexComparisons:
+     # TODO: parameterize over boxes
+ 
+-    @pytest.mark.parametrize("other", ["2017", 2017])
++    @pytest.mark.parametrize("other", ["2017", pd.Period("2017", freq="D")])
+     def test_eq(self, other):
+         idx = PeriodIndex(["2017", "2017", "2018"], freq="D")
+         expected = np.array([True, True, False])
+@@ -135,6 +135,34 @@ class TestPeriodIndexComparisons:
+ 
+         tm.assert_numpy_array_equal(result, expected)
+ 
++    @pytest.mark.parametrize(
++        "other",
++        [
++            2017,
++            [2017, 2017, 2017],
++            np.array([2017, 2017, 2017]),
++            np.array([2017, 2017, 2017], dtype=object),
++            pd.Index([2017, 2017, 2017]),
++        ],
++    )
++    def test_eq_integer_disallowed(self, other):
++        # match Period semantics by not treating integers as Periods
++
++        idx = PeriodIndex(["2017", "2017", "2018"], freq="D")
++        expected = np.array([False, False, False])
++        result = idx == other
++
++        tm.assert_numpy_array_equal(result, expected)
++
++        with pytest.raises(TypeError):
++            idx < other
++        with pytest.raises(TypeError):
++            idx > other
++        with pytest.raises(TypeError):
++            idx <= other
++        with pytest.raises(TypeError):
++            idx >= other
++
+     def test_pi_cmp_period(self):
+         idx = period_range("2007-01", periods=20, freq="M")
+ 

@@ -1,0 +1,90 @@
+diff --git a/pandas/tests/indexes/period/test_constructors.py b/pandas/tests/indexes/period/test_constructors.py
+index 2adce0b7f8..d87e49e3cb 100644
+--- a/pandas/tests/indexes/period/test_constructors.py
++++ b/pandas/tests/indexes/period/test_constructors.py
+@@ -7,14 +7,11 @@ from pandas.core.dtypes.dtypes import PeriodDtype
+ 
+ import pandas as pd
+ from pandas import Index, Period, PeriodIndex, Series, date_range, offsets, period_range
+-import pandas.core.indexes.period as period
++from pandas.core.arrays import PeriodArray
+ import pandas.util.testing as tm
+ 
+ 
+ class TestPeriodIndex:
+-    def setup_method(self, method):
+-        pass
+-
+     def test_construction_base_constructor(self):
+         # GH 13664
+         arr = [pd.Period("2011-01", freq="M"), pd.NaT, pd.Period("2011-03", freq="M")]
+@@ -32,6 +29,30 @@ class TestPeriodIndex:
+             pd.Index(np.array(arr)), pd.Index(np.array(arr), dtype=object)
+         )
+ 
++    def test_base_constructor_with_period_dtype(self):
++        dtype = PeriodDtype("D")
++        values = ["2011-01-01", "2012-03-04", "2014-05-01"]
++        result = pd.Index(values, dtype=dtype)
++
++        expected = pd.PeriodIndex(values, dtype=dtype)
++        tm.assert_index_equal(result, expected)
++
++    @pytest.mark.parametrize(
++        "values_constructor", [list, np.array, PeriodIndex, PeriodArray._from_sequence]
++    )
++    def test_index_object_dtype(self, values_constructor):
++        # Index(periods, dtype=object) is an Index (not an PeriodIndex)
++        periods = [
++            pd.Period("2011-01", freq="M"),
++            pd.NaT,
++            pd.Period("2011-03", freq="M"),
++        ]
++        values = values_constructor(periods)
++        result = Index(values, dtype=object)
++
++        assert type(result) is Index
++        tm.assert_numpy_array_equal(result.values, np.array(values))
++
+     def test_constructor_use_start_freq(self):
+         # GH #1118
+         p = Period("4/2/2012", freq="B")
+@@ -201,7 +222,7 @@ class TestPeriodIndex:
+         assert res.dtype == "period[M]"
+ 
+         msg = "specified freq and dtype are different"
+-        with pytest.raises(period.IncompatibleFrequency, match=msg):
++        with pytest.raises(IncompatibleFrequency, match=msg):
+             PeriodIndex(["2011-01"], freq="M", dtype="period[D]")
+ 
+     def test_constructor_empty(self):
+@@ -261,12 +282,12 @@ class TestPeriodIndex:
+     def test_constructor_incompat_freq(self):
+         msg = "Input has different freq=D from PeriodIndex\\(freq=M\\)"
+ 
+-        with pytest.raises(period.IncompatibleFrequency, match=msg):
++        with pytest.raises(IncompatibleFrequency, match=msg):
+             PeriodIndex(
+                 [Period("2011-01", freq="M"), pd.NaT, Period("2011-01", freq="D")]
+             )
+ 
+-        with pytest.raises(period.IncompatibleFrequency, match=msg):
++        with pytest.raises(IncompatibleFrequency, match=msg):
+             PeriodIndex(
+                 np.array(
+                     [Period("2011-01", freq="M"), pd.NaT, Period("2011-01", freq="D")]
+@@ -274,12 +295,12 @@ class TestPeriodIndex:
+             )
+ 
+         # first element is pd.NaT
+-        with pytest.raises(period.IncompatibleFrequency, match=msg):
++        with pytest.raises(IncompatibleFrequency, match=msg):
+             PeriodIndex(
+                 [pd.NaT, Period("2011-01", freq="M"), Period("2011-01", freq="D")]
+             )
+ 
+-        with pytest.raises(period.IncompatibleFrequency, match=msg):
++        with pytest.raises(IncompatibleFrequency, match=msg):
+             PeriodIndex(
+                 np.array(
+                     [pd.NaT, Period("2011-01", freq="M"), Period("2011-01", freq="D")]

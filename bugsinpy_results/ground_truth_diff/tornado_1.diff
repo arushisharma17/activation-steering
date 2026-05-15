@@ -1,0 +1,38 @@
+diff --git a/tornado/test/websocket_test.py b/tornado/test/websocket_test.py
+index 715ecf1e..d4b7a741 100644
+--- a/tornado/test/websocket_test.py
++++ b/tornado/test/websocket_test.py
+@@ -198,6 +198,12 @@ class ErrorInAsyncOpenHandler(TestWebSocketHandler):
+         raise Exception("boom")
+ 
+ 
++class NoDelayHandler(TestWebSocketHandler):
++    def open(self):
++        self.set_nodelay(True)
++        self.write_message("hello")
++
++
+ class WebSocketBaseTestCase(AsyncHTTPTestCase):
+     @gen.coroutine
+     def ws_connect(self, path, **kwargs):
+@@ -258,6 +264,7 @@ class WebSocketTest(WebSocketBaseTestCase):
+                 ),
+                 ("/error_in_open", ErrorInOpenHandler),
+                 ("/error_in_async_open", ErrorInAsyncOpenHandler),
++                ("/nodelay", NoDelayHandler),
+             ],
+             template_loader=DictLoader({"message.html": "<b>{{ message }}</b>"}),
+         )
+@@ -562,6 +569,12 @@ class WebSocketTest(WebSocketBaseTestCase):
+             res = yield ws.read_message()
+         self.assertIsNone(res)
+ 
++    @gen_test
++    def test_nodelay(self):
++        ws = yield self.ws_connect("/nodelay")
++        res = yield ws.read_message()
++        self.assertEqual(res, "hello")
++
+ 
+ class NativeCoroutineOnMessageHandler(TestWebSocketHandler):
+     def initialize(self, **kwargs):

@@ -1,0 +1,12 @@
+diff --git a/test/test_all_urls.py b/test/test_all_urls.py
+index 0ff47cf1e..b1ad30bf1 100644
+--- a/test/test_all_urls.py
++++ b/test/test_all_urls.py
+@@ -99,6 +99,7 @@ class TestAllURLsMatching(unittest.TestCase):
+ 
+     def test_facebook_matching(self):
+         self.assertTrue(FacebookIE.suitable('https://www.facebook.com/Shiniknoh#!/photo.php?v=10153317450565268'))
++        self.assertTrue(FacebookIE.suitable('https://www.facebook.com/cindyweather?fref=ts#!/photo.php?v=10152183998945793'))
+ 
+     def test_no_duplicates(self):
+         ies = gen_extractors()

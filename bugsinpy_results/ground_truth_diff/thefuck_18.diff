@@ -1,0 +1,12 @@
+diff --git a/tests/rules/test_sudo.py b/tests/rules/test_sudo.py
+index fb6692b..a065b35 100644
+--- a/tests/rules/test_sudo.py
++++ b/tests/rules/test_sudo.py
+@@ -19,6 +19,7 @@ def test_match(stderr, stdout):
+ 
+ def test_not_match():
+     assert not match(Command())
++    assert not match(Command(script='sudo ls', stderr='Permission denied'))
+ 
+ 
+ @pytest.mark.parametrize('before, after', [

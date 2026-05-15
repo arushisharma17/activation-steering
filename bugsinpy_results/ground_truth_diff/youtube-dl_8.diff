@@ -1,0 +1,19 @@
+diff --git a/test/test_YoutubeDL.py b/test/test_YoutubeDL.py
+index 1e4aaa559..f103779d3 100644
+--- a/test/test_YoutubeDL.py
++++ b/test/test_YoutubeDL.py
+@@ -253,6 +253,14 @@ class TestFormatSelection(unittest.TestCase):
+         downloaded = ydl.downloaded_info_dicts[0]
+         self.assertEqual(downloaded['format_id'], '38')
+ 
++        info_dict = _make_result(list(formats_order), extractor='youtube')
++        ydl = YDL({'format': 'bestvideo/best,bestaudio'})
++        yie = YoutubeIE(ydl)
++        yie._sort_formats(info_dict['formats'])
++        ydl.process_ie_result(info_dict)
++        downloaded_ids = [info['format_id'] for info in ydl.downloaded_info_dicts]
++        self.assertEqual(downloaded_ids, ['137', '141'])
++
+         info_dict = _make_result(list(formats_order), extractor='youtube')
+         ydl = YDL({'format': '(bestvideo[ext=mp4],bestvideo[ext=webm])+bestaudio'})
+         yie = YoutubeIE(ydl)

@@ -1,0 +1,27 @@
+diff --git a/test/test_utils.py b/test/test_utils.py
+index 97551ce9c..113aa44b2 100644
+--- a/test/test_utils.py
++++ b/test/test_utils.py
+@@ -44,6 +44,7 @@ from youtube_dl.utils import (
+     limit_length,
+     escape_rfc3986,
+     escape_url,
++    js_to_json,
+ )
+ 
+ 
+@@ -331,5 +332,14 @@ class TestUtil(unittest.TestCase):
+         )
+         self.assertEqual(escape_url('http://vimeo.com/56015672#at=0'), 'http://vimeo.com/56015672#at=0')
+ 
++    def test_js_to_json(self):
++        inp = '''{
++                'clip':{'provider':'pseudo'}
++        }'''
++        self.assertEqual(js_to_json(inp), '''{
++                "clip":{"provider":"pseudo"}
++        }''')
++        json.loads(js_to_json(inp))
++
+ if __name__ == '__main__':
+     unittest.main()

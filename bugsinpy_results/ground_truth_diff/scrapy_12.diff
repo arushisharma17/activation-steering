@@ -1,0 +1,15 @@
+diff --git a/tests/test_selector.py b/tests/test_selector.py
+index 141455b66..af0cc4de2 100644
+--- a/tests/test_selector.py
++++ b/tests/test_selector.py
+@@ -123,6 +123,10 @@ class SelectorTestCase(unittest.TestCase):
+             sel.xpath('//p').extract_unquoted()
+             self.assertSubstring('Use .extract() instead', str(w[-1].message))
+ 
++    def test_selector_bad_args(self):
++        with self.assertRaisesRegexp(ValueError, 'received both response and text'):
++            Selector(TextResponse(url='http://example.com', body=b''), text=u'')
++
+ 
+ class DeprecatedXpathSelectorTest(unittest.TestCase):
+ 

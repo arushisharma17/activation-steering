@@ -1,0 +1,12 @@
+diff --git a/test/test_utils.py b/test/test_utils.py
+index 2aab16b97..e50f3764e 100644
+--- a/test/test_utils.py
++++ b/test/test_utils.py
+@@ -279,6 +279,7 @@ class TestUtil(unittest.TestCase):
+         self.assertEqual(unescapeHTML('&#47;'), '/')
+         self.assertEqual(unescapeHTML('&eacute;'), 'é')
+         self.assertEqual(unescapeHTML('&#2013266066;'), '&#2013266066;')
++        self.assertEqual(unescapeHTML('&a&quot;'), '&a"')
+         # HTML5 entities
+         self.assertEqual(unescapeHTML('&period;&apos;'), '.\'')
+ 

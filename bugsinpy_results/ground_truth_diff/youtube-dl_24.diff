@@ -1,0 +1,31 @@
+diff --git a/test/test_YoutubeDL.py b/test/test_YoutubeDL.py
+index 0dfe25c00..8bf00bea9 100644
+--- a/test/test_YoutubeDL.py
++++ b/test/test_YoutubeDL.py
+@@ -605,6 +605,7 @@ class TestYoutubeDL(unittest.TestCase):
+             'extractor': 'TEST',
+             'duration': 30,
+             'filesize': 10 * 1024,
++            'playlist_id': '42',
+         }
+         second = {
+             'id': '2',
+@@ -614,6 +615,7 @@ class TestYoutubeDL(unittest.TestCase):
+             'duration': 10,
+             'description': 'foo',
+             'filesize': 5 * 1024,
++            'playlist_id': '43',
+         }
+         videos = [first, second]
+ 
+@@ -650,6 +652,10 @@ class TestYoutubeDL(unittest.TestCase):
+         res = get_videos(f)
+         self.assertEqual(res, ['1'])
+ 
++        f = match_filter_func('playlist_id = 42')
++        res = get_videos(f)
++        self.assertEqual(res, ['1'])
++
+     def test_playlist_items_selection(self):
+         entries = [{
+             'id': compat_str(i),

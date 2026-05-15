@@ -1,0 +1,26 @@
+diff --git a/pandas/tests/frame/methods/test_asof.py b/pandas/tests/frame/methods/test_asof.py
+index 774369794c..0291be0a40 100644
+--- a/pandas/tests/frame/methods/test_asof.py
++++ b/pandas/tests/frame/methods/test_asof.py
+@@ -1,7 +1,7 @@
+ import numpy as np
+ import pytest
+ 
+-from pandas import DataFrame, Series, Timestamp, date_range, to_datetime
++from pandas import DataFrame, Period, Series, Timestamp, date_range, to_datetime
+ import pandas._testing as tm
+ 
+ 
+@@ -80,6 +80,12 @@ class TestFrameAsof:
+         )
+         tm.assert_frame_equal(result, expected)
+ 
++        # Check that we handle PeriodIndex correctly, dont end up with
++        #  period.ordinal for series name
++        df = df.to_period("D")
++        result = df.asof("1989-12-31")
++        assert isinstance(result.name, Period)
++
+     def test_all_nans(self, date_range_frame):
+         # GH 15713
+         # DataFrame is all nans

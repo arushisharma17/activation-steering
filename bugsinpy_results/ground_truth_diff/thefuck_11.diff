@@ -1,0 +1,14 @@
+diff --git a/tests/rules/test_git_push.py b/tests/rules/test_git_push.py
+index 7531472..d665496 100644
+--- a/tests/rules/test_git_push.py
++++ b/tests/rules/test_git_push.py
+@@ -23,5 +23,9 @@ def test_match(stderr):
+ def test_get_new_command(stderr):
+     assert get_new_command(Command('git push', stderr=stderr))\
+         == "git push --set-upstream origin master"
++    assert get_new_command(Command('git push -u origin', stderr=stderr))\
++        == "git push --set-upstream origin master"
++    assert get_new_command(Command('git push --set-upstream origin', stderr=stderr))\
++        == "git push --set-upstream origin master"
+     assert get_new_command(Command('git push --quiet', stderr=stderr))\
+         == "git push --set-upstream origin master --quiet"

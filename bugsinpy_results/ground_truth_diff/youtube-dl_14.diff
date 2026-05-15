@@ -1,0 +1,13 @@
+diff --git a/test/test_youtube_chapters.py b/test/test_youtube_chapters.py
+index 324ca8525..e69c57377 100644
+--- a/test/test_youtube_chapters.py
++++ b/test/test_youtube_chapters.py
+@@ -267,7 +267,7 @@ class TestYoutubeChapters(unittest.TestCase):
+         for description, duration, expected_chapters in self._TEST_CASES:
+             ie = YoutubeIE()
+             expect_value(
+-                self, ie._extract_chapters(description, duration),
++                self, ie._extract_chapters_from_description(description, duration),
+                 expected_chapters, None)
+ 
+ 

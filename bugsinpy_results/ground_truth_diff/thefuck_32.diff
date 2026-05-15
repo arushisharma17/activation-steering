@@ -1,0 +1,17 @@
+diff --git a/tests/rules/test_ls_lah.py b/tests/rules/test_ls_lah.py
+index c453f6e..66bc836 100644
+--- a/tests/rules/test_ls_lah.py
++++ b/tests/rules/test_ls_lah.py
+@@ -3,9 +3,12 @@ from thefuck.rules.ls_lah import match, get_new_command
+ 
+ 
+ def test_match():
++    assert match(Mock(script='ls'), None)
+     assert match(Mock(script='ls file.py'), None)
+     assert match(Mock(script='ls /opt'), None)
+     assert not match(Mock(script='ls -lah /opt'), None)
++    assert not match(Mock(script='pacman -S binutils'), None)
++    assert not match(Mock(script='lsof'), None)
+ 
+ 
+ def test_get_new_command():

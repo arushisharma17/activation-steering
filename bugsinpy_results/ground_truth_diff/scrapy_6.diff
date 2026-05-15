@@ -1,0 +1,19 @@
+diff --git a/tests/test_pipeline_images.py b/tests/test_pipeline_images.py
+index 342f25ea9..0f3047602 100644
+--- a/tests/test_pipeline_images.py
++++ b/tests/test_pipeline_images.py
+@@ -96,6 +96,14 @@ class ImagesPipelineTestCase(unittest.TestCase):
+         self.assertEquals(converted.mode, 'RGB')
+         self.assertEquals(converted.getcolors(), [(10000, (205, 230, 255))])
+ 
++        # transparency case with palette: P and PNG
++        COLOUR = (0, 127, 255, 50)
++        im = _create_image('PNG', 'RGBA', SIZE, COLOUR)
++        im = im.convert('P')
++        converted, _ = self.pipeline.convert_image(im)
++        self.assertEquals(converted.mode, 'RGB')
++        self.assertEquals(converted.getcolors(), [(10000, (205, 230, 255))])
++
+ 
+ class DeprecatedImagesPipeline(ImagesPipeline):
+     def file_key(self, url):

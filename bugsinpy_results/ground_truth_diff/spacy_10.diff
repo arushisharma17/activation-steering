@@ -1,0 +1,16 @@
+diff --git a/spacy/tests/matcher/test_matcher_api.py b/spacy/tests/matcher/test_matcher_api.py
+index df35a1be2..0d640e1a2 100644
+--- a/spacy/tests/matcher/test_matcher_api.py
++++ b/spacy/tests/matcher/test_matcher_api.py
+@@ -410,3 +410,11 @@ def test_matcher_schema_token_attributes(en_vocab, pattern, text):
+     assert len(matcher) == 1
+     matches = matcher(doc)
+     assert len(matches) == 1
++
++
++def test_matcher_valid_callback(en_vocab):
++    """Test that on_match can only be None or callable."""
++    matcher = Matcher(en_vocab)
++    with pytest.raises(ValueError):
++        matcher.add("TEST", [], [{"TEXT": "test"}])
++    matcher(Doc(en_vocab, words=["test"]))
