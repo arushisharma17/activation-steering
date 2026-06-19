@@ -1,0 +1,124 @@
+bug_type,mutation_type,omp_construct,bug_omp_concept,needs_review,count,notes,example_source_id,example_original_statement,example_buggy_statement
+VARIANT_WRONG_ASSIGNMENT,CHANGE_ASSIGNMENT,declare_variant,variant_selector,FALSE,1,,tests/5.1/declare_variant/test_declare_variant_adjust_args.c,arr[i] = i+3; // Variant function adds 3 to array values,arr[i] = i+1; // BUG: variant function adds 1 instead of 3
+WRONG_ARRAY_UPDATE,CHANGE_ASSIGNMENT,parallel,loop_body,FALSE,1,,tests/6.0/parallel/test_parallel_safesync.c,a[i] += b[i];,a[i] += b[i] + 1;
+WRONG_ASSIGNMENT,CHANGE_ASSIGNMENT,fuse,general_code,FALSE,4,,tests/6.0/fuse/test_fuse_apply_looprange.c,A[2][j] = 2 * N + j + 1;,A[2][j] = 2 * N + j;
+WRONG_ASSIGNMENT_SCALE,CHANGE_ASSIGNMENT,assume,general_code,FALSE,1,,tests/6.0/assume/test_assume_noopenmpconstructs.c,A[i] = 2 * (i + 1);,A[i] = 3 * (i + 1);
+WRONG_FIB_COMBINE,CHANGE_ASSIGNMENT,task,general_code,FALSE,2,,tests/6.0/task/test_task_threadset_ancestor_THREADS_RESERVE.c,return (i + j);,return (i - j);
+WRONG_INCREMENT,CHANGE_ASSIGNMENT,task,general_code,FALSE,4,,tests/6.0/task/test_task_transparent.c,++x;,x += 2;
+WRONG_INCREMENT_AMOUNT,CHANGE_ASSIGNMENT,error,general_code,FALSE,5,,tests/5.1/error/test_error_at_execution.c,i+=5;,i+=4;
+WRONG_LOOP_BODY_ASSIGNMENT,CHANGE_ASSIGNMENT,loop,loop_body,FALSE,3,,tests/5.1/loop/test_full_loop_unroll.c,parallel_arr[i] = i;,parallel_arr[i] = i + 1;
+WRONG_RETURN_UPDATE,CHANGE_ASSIGNMENT,parallel,general_code,FALSE,2,,tests/6.0/parallel/test_parallel_message.c,--return_value;,++return_value;
+WRONG_TIME_ASSIGNMENT,CHANGE_ASSIGNMENT,tile,loop_body,FALSE,1,,tests/5.1/tile/test_tile.c,result[i][j] = time++;,result[i][j] = ++time;
+BIND_PARALLEL_TO_THREAD,CHANGE_CLAUSE,loop,bind,FALSE,1,,tests/5.0/loop/test_loop_bind.c,#pragma omp loop bind(parallel),#pragma omp loop bind(thread)
+BIND_TEAMS_TO_THREAD,CHANGE_CLAUSE,loop,bind,FALSE,1,,tests/5.0/loop/test_loop_bind.c,#pragma omp loop bind(teams),#pragma omp loop bind(thread)
+BIND_THREAD_TO_PARALLEL,CHANGE_CLAUSE,loop,bind,FALSE,1,,tests/5.0/loop/test_loop_bind.c,#pragma omp loop bind(thread),#pragma omp loop bind(parallel)
+BIND_THREAD_TO_TEAMS,CHANGE_CLAUSE,loop,bind,FALSE,1,,tests/5.0/loop/test_loop_bind.c,#pragma omp loop bind(thread),#pragma omp loop bind(teams)
+DEFAULT_FIRSTPRIVATE_TO_SHARED,CHANGE_CLAUSE,default,data_sharing,FALSE,3,,tests/5.1/default/test_default_firstprivate_parallel.c,#pragma omp parallel default(firstprivate) num_threads(OMPVV_NUM_THREADS_HOST),#pragma omp parallel default(shared) num_threads(OMPVV_NUM_THREADS_HOST)
+FIRSTPRIVATE_TARGET_TO_PRIVATE,CHANGE_CLAUSE,modifiers,data_sharing,FALSE,1,,tests/6.0/modifiers/test_directive_name_modifier.c,#pragma omp target teams distribute firstprivate(target : shared_value) num_teams(M) \,#pragma omp target teams distribute private(shared_value) num_teams(M) \
+FIRSTPRIVATE_TEAMS_TO_PRIVATE,CHANGE_CLAUSE,modifiers,data_sharing,FALSE,1,,tests/6.0/modifiers/test_directive_name_modifier.c,#pragma omp target teams distribute firstprivate(teams : shared_value) num_teams(M) \,#pragma omp target teams distribute private(shared_value) num_teams(M) \
+FIRSTPRIVATE_TO_PRIVATE,CHANGE_CLAUSE,taskloop,data_sharing,FALSE,2,,tests/4.5/taskloop/test_taskloop_firstprivate.c,#pragma omp taskloop firstprivate(private_var),#pragma omp taskloop private(private_var)
+LASTPRIVATE_TO_FIRSTPRIVATE,CHANGE_CLAUSE,taskloop,data_sharing,FALSE,1,,tests/4.5/taskloop/test_taskloop_lastprivate.c,#pragma omp taskloop lastprivate(val),#pragma omp taskloop firstprivate(val)
+LASTPRIVATE_TO_PRIVATE,CHANGE_CLAUSE,taskloop,data_sharing,FALSE,1,,tests/4.5/taskloop/test_taskloop_lastprivate.c,#pragma omp taskloop lastprivate(val),#pragma omp taskloop private(val)
+SEVERITY_WARNING_TO_FATAL,CHANGE_CLAUSE,parallel,severity,FALSE,1,,tests/6.0/parallel/test_parallel_severity.c,"#pragma omp parallel severity(warning) message(""Entering first parallel region."")","#pragma omp parallel severity(fatal) message(""Entering first parallel region."")"
+SHARED_TO_PRIVATE,CHANGE_CLAUSE,taskloop,data_sharing,FALSE,1,,tests/4.5/taskloop/test_taskloop_shared.c,#pragma omp taskloop shared(shared_var),#pragma omp taskloop private(shared_var)
+SHARE_SHARED_TO_PRIVATE,CHANGE_CLAUSE,teams,data_sharing,FALSE,1,,tests/5.0/teams/test_team_default_shared.c,#pragma omp teams distribute default(shared) num_teams(OMPVV_NUM_TEAMS_DEVICE),#pragma omp teams distribute default(shared) private(share) num_teams(OMPVV_NUM_TEAMS_DEVICE)
+THREADSET_POOL_TO_TEAM,CHANGE_CLAUSE,task,data_sharing,FALSE,2,,tests/6.0/task/test_task_threadset_ancestor_THREADS_RESERVE.c,#pragma omp task shared(i) threadset(omp_pool),#pragma omp task shared(i) threadset(omp_team)
+WRONG_PARALLEL_VARIANT_SELECTOR,CHANGE_CLAUSE,declare_variant,variant_selector,FALSE,1,,tests/5.1/declare_variant/test_begin_end_declare_variant.c,#pragma omp begin declare variant match(construct={parallel}),#pragma omp begin declare variant match(construct={target})
+WRONG_TARGET_VARIANT_SELECTOR,CHANGE_CLAUSE,declare_variant,variant_selector,FALSE,1,,tests/5.1/declare_variant/test_begin_end_declare_variant.c,#pragma omp begin declare variant match(construct={target}),#pragma omp begin declare variant match(construct={parallel})
+CANNOT_ASSUME_FALSE_TO_TRUE,CHANGE_CONDITION,assume,general_code,FALSE,1,,tests/6.0/assume/test_assume_noopenmpconstructs.c,#define cannot_assume 0,#define cannot_assume 1
+CAN_ASSUME_TRUE_TO_FALSE,CHANGE_CONDITION,assume,general_code,FALSE,1,,tests/6.0/assume/test_assume_noopenmpconstructs.c,#define can_assume 1,#define can_assume 0
+FINAL_ISFINAL_TO_NOT_ISFINAL,CHANGE_CONDITION,task,task_final,FALSE,1,,tests/4.5/task/test_task_final.c,#pragma omp task final(isFinal),#pragma omp task final(!isFinal)
+IF0_TO_IF1,CHANGE_CONDITION,task,task_if,FALSE,1,,tests/4.5/task/test_task_ThrdPrivate.c,#pragma omp task if(0),#pragma omp task if(1)
+IF_TO_ZERO,CHANGE_CONDITION,taskloop,loop,FALSE,1,,tests/4.5/taskloop/test_taskloop_if.c,#pragma omp taskloop if(M == THRESHOLD),#pragma omp taskloop if(0)
+LASTPRIVATE_CONDITIONAL_TO_LASTPRIVATE,CHANGE_CONDITION,parallel_for,data_sharing,FALSE,1,,tests/5.0/parallel_for/test_parallel_for_lastprivate_conditional.c,#pragma omp parallel for lastprivate(conditional: x),#pragma omp parallel for lastprivate(x)
+ADD_NUM_THREADS_ONE,CHANGE_CONFIGURATION,parallel,configuration,FALSE,1,,tests/6.0/parallel/test_parallel_message.c,"#pragma omp parallel message(""Entering first parallel region."")","#pragma omp parallel num_threads(1) message(""Entering first parallel region."")"
+ALLOC_ALIGNMENT_64_TO_32,CHANGE_CONFIGURATION,allocator,allocator,FALSE,1,,tests/5.0/allocate/test_allocate_allocator.c,"omp_alloctrait_t x_traits[1] = {{omp_atk_alignment, 64}};","omp_alloctrait_t x_traits[1] = {{omp_atk_alignment, 32}};"
+FINAL_ONE_TO_ZERO_ADVANCED,CHANGE_CONFIGURATION,task,general_code,FALSE,1,,tests/4.5/task/test_task_final.c,#pragma omp task final(1),#pragma omp task final(0)
+FINAL_ONE_TO_ZERO_NESTED,CHANGE_CONFIGURATION,task,general_code,FALSE,1,,tests/4.5/task/test_task_final.c,#pragma omp task final(1),#pragma omp task final(0)
+FINAL_TO_ZERO,CHANGE_CONFIGURATION,taskloop,loop,FALSE,1,,tests/4.5/taskloop/test_taskloop_final.c,#pragma omp taskloop final(M == THRESHOLD),#pragma omp taskloop final(0)
+SET_NUM_TEAMS_MINUS_ONE,CHANGE_CONFIGURATION,teams,configuration,FALSE,1,,tests/5.1/runtime_calls/test_teams_region_routines.c,omp_set_num_teams(OMPVV_NUM_TEAMS_DEVICE);,omp_set_num_teams(OMPVV_NUM_TEAMS_DEVICE - 1);
+SET_NUM_TEAMS_WRONG_VALUE,CHANGE_CONFIGURATION,teams,configuration,FALSE,1,,tests/5.1/teams/test_teams_set_num_teams.c,omp_set_num_teams(8);,omp_set_num_teams(7);
+SET_TEAMS_THREAD_LIMIT_MINUS_ONE,CHANGE_CONFIGURATION,teams,configuration,FALSE,1,,tests/5.1/runtime_calls/test_teams_region_routines.c,omp_set_teams_thread_limit(OMPVV_NUM_THREADS_DEVICE);,omp_set_teams_thread_limit(OMPVV_NUM_THREADS_DEVICE - 1);
+TILE_SIZE_3_TO_4,CHANGE_CONFIGURATION,tile,general_code,FALSE,1,,tests/5.1/tile/test_tile.c,"#pragma omp tile sizes(3, 3)","#pragma omp tile sizes(4, 4)"
+TILE_SIZE_4_TO_2,CHANGE_CONFIGURATION,tile,general_code,FALSE,1,,tests/5.1/tile/test_tile.c,"#pragma omp tile sizes(4, 4)","#pragma omp tile sizes(2, 2)"
+WRONG_FILTER_THREAD,CHANGE_CONFIGURATION,masked,general_code,FALSE,1,,tests/5.1/masked/test_masked_filter.c,#pragma omp masked filter(3),#pragma omp masked filter(2)
+WRONG_NUM_TEAMS_OVERRIDE,CHANGE_CONFIGURATION,teams,configuration,FALSE,1,,tests/5.1/teams/test_teams_set_num_teams.c,#pragma omp teams num_teams(OMPVV_NUM_TEAMS_HOST),#pragma omp teams num_teams(1)
+FORCE_ONE_TEAM,CHANGE_CONSTANT,teams,configuration,FALSE,1,,tests/5.1/runtime_calls/test_teams_region_routines.c,#pragma omp teams,#pragma omp teams num_teams(1)
+REL_OP_NEQ_TO_LT,CHANGE_LOOP_BOUND,parallel_for,loop_condition,FALSE,1,,tests/5.0/parallel_for/test_parallel_for_notequals.c,for (int i = 0; i != N; i++) {,for (int i = 0; i < N - 1; i++) {
+SKIP_LAST_ITER,CHANGE_LOOP_BOUND,simd,general_code,FALSE,5,,tests/5.0/simd/test_simd_if.c,i < N,i < N-1
+SKIP_LAST_ITERATION,CHANGE_LOOP_BOUND,loop,loop,FALSE,38,,tests/5.1/loop/test_full_loop_unroll.c,for (int i = 0; i < N; i++) {,for (int i = 0; i < N - 1; i++) {
+SKIP_LAST_TEAM,CHANGE_LOOP_BOUND,teams,configuration,FALSE,1,,tests/5.0/teams/test_team_default_shared.c,for ( int i = 0; i < omp_get_num_teams(); i++){,for ( int i = 0; i < omp_get_num_teams() - 1; i++){
+EXIT_DATA_FROM_TO_DELETE,CHANGE_MAPPING,target_mapping,mapping,FALSE,1,,tests/6.0/map-type_modifier/test_map-type_modifier_default.c,#pragma omp target exit data map(from: a),#pragma omp target exit data map(delete: a)
+MAPPER_FROM_TO_TO,CHANGE_MAPPING,declare_mapper,mapping,FALSE,1,,tests/5.2/declare_mapper/test_declare_mapper_present.c,"#pragma omp declare mapper(default:myvec_t v) map(always, present, from: v, v.len, v.data[0:v.len])","#pragma omp declare mapper(default:myvec_t v) map(always, present, to: v, v.len, v.data[0:v.len])"
+MAPPER_TOFROM_TO_TO,CHANGE_MAPPING,declare_mapper,mapping,FALSE,1,,tests/5.2/declare_mapper/test_declare_mapper_iterator.c,"#pragma omp declare mapper(myvec_t v) map(iterator(it = 0:v.len), tofrom: v.data[it])","#pragma omp declare mapper(myvec_t v) map(iterator(it = 0:v.len), to: v.data[it])"
+MAP_ENTER_TO_TO_FROM,CHANGE_MAPPING,application_kernels,mapping,FALSE,1,,tests/4.5/application_kernels/linked_list.c,#pragma omp target enter data map(to:cur[:1]),#pragma omp target enter data map(from:cur[:1])
+MAP_EXIT_FROM_TO_TO_HEAD,CHANGE_MAPPING,application_kernels,mapping,FALSE,1,,tests/4.5/application_kernels/linked_list.c,#pragma omp target exit data map(from:temp[0:1]),#pragma omp target exit data map(to:temp[0:1])
+REMOVE_TARGET_ENTER_DATA,CHANGE_MAPPING,declare_mapper,mapping,FALSE,1,,tests/5.2/declare_mapper/test_declare_mapper_present.c,"#pragma omp target enter data map(to: s.len, s.data[0:s.len]) map(alloc: s.data)",/* target enter data removed */
+TARGET_MAP_FROM_TO_TO,CHANGE_MAPPING,metadirective,mapping,FALSE,1,,tests/5.0/metadirective/test_metadirective_arch_is_nvidia.c,"#pragma omp target map(to:v1,v2) map(from:v3, target_device_num) device(default_device)","#pragma omp target map(to:v1,v2) map(to:v3, target_device_num) device(default_device)"
+TARGET_MAP_TOFROM_TO_TO,CHANGE_MAPPING,declare_variant,mapping,FALSE,1,,tests/5.1/declare_variant/test_begin_end_declare_variant.c,#pragma omp target map(tofrom: arr),#pragma omp target map(to: arr)
+BITAND_TO_BITOR,CHANGE_OPERATOR,loop,reduction_operator,FALSE,1,,tests/5.0/loop/test_loop_reduction_bitand.c,#pragma omp loop reduction(&:b),#pragma omp loop reduction(|:b)
+BITOR_TO_BITAND,CHANGE_OPERATOR,loop,reduction_operator,FALSE,1,,tests/5.0/loop/test_loop_reduction_bitor.c,#pragma omp loop reduction(|:b),#pragma omp loop reduction(&:b)
+BITXOR_TO_BITOR,CHANGE_OPERATOR,loop,reduction_operator,FALSE,1,,tests/5.0/loop/test_loop_reduction_bitxor.c,#pragma omp loop reduction(^:b),#pragma omp loop reduction(|:b)
+COMPARE_EQ_TO_NEQ,CHANGE_OPERATOR,atomic,general_code,FALSE,3,,tests/5.1/atomic/test_atomic_fail_acquire.c,if(y == 1){,if(y != 1){
+COMPARE_GREATER_TO_LESS,CHANGE_OPERATOR,atomic,general_code,FALSE,1,,tests/5.1/atomic/test_atomic_compare.c,if(arr[i] > pmax){,if(arr[i] < pmax){
+COMPARE_WRITE_WRONG_VALUE,CHANGE_OPERATOR,atomic,general_code,FALSE,4,,tests/5.1/atomic/test_atomic_compare.c,pmax = arr[i];,pmax = 0;
+IF_INVERT,CHANGE_OPERATOR,taskloop,loop,FALSE,1,,tests/4.5/taskloop/test_taskloop_if.c,#pragma omp taskloop if(M == THRESHOLD),#pragma omp taskloop if(M != THRESHOLD)
+LOGICAL_AND_TO_OR,CHANGE_OPERATOR,loop,reduction_operator,FALSE,1,,tests/5.0/loop/test_loop_reduction_and.c,#pragma omp loop reduction(&&:result),#pragma omp loop reduction(||:result)
+LOGICAL_OR_TO_AND,CHANGE_OPERATOR,loop,reduction_operator,FALSE,1,,tests/5.0/loop/test_loop_reduction_or.c,#pragma omp loop reduction(||:result),#pragma omp loop reduction(&&:result)
+MAX_TO_MIN,CHANGE_OPERATOR,loop,reduction_operator,FALSE,1,,tests/5.0/loop/test_loop_reduction_max.c,#pragma omp loop reduction(max:result),#pragma omp loop reduction(min:result)
+MIN_TO_MAX,CHANGE_OPERATOR,loop,reduction_operator,FALSE,1,,tests/5.0/loop/test_loop_reduction_min.c,#pragma omp loop reduction(min:result),#pragma omp loop reduction(max:result)
+PLUS_TO_MULTIPLY,CHANGE_OPERATOR,loop,reduction,FALSE,1,,tests/5.0/loop/test_loop_reduction_add.c,#pragma omp loop reduction(+:total),#pragma omp loop reduction(*:total)
+PLUS_TO_MULTIPLY_MULTI,CHANGE_OPERATOR,loop,reduction,FALSE,1,,tests/5.0/loop/test_loop_reduction_add_mod.c,"#pragma omp loop reduction(+:n,f,d,c)","#pragma omp loop reduction(*:n,f,d,c)"
+REDUCTION_PLUS_TO_MULTIPLY,CHANGE_OPERATOR,application_kernels,reduction,FALSE,1,,tests/4.5/application_kernels/reduction_separated_directives.c,#pragma omp for reduction(+: counts_team),#pragma omp for reduction(*: counts_team)
+WRONG_ENV_VAR_NAME,CHANGE_RUNTIME_CALL,runtime_api,runtime_api,FALSE,2,,tests/5.1/env_var/test_omp_places_env_ll_caches.c,"ret_val = getenv(""OMP_PLACES"");","ret_val = getenv(""OMP_PROC_BIND"");"
+WRONG_RUNTIME_QUERY,CHANGE_RUNTIME_CALL,teams,configuration,FALSE,2,,tests/5.1/env_var/test_omp_teams_thread_limit_env_2.c,env = omp_get_teams_thread_limit();,env = omp_get_thread_limit();
+WRONG_SCAN_UPDATE,CHANGE_SCAN,scan,scan,FALSE,1,,tests/5.0/scan/test_scan.c,x += a[i];,x -= a[i];
+RETURN_VALUE_0_TO_1,ORACLE_MUTATION,runtime_api,general_code,FALSE,1,,tests/5.1/runtime_calls/test_omp_display_env.c,return 0;,return 1;
+WRONG_EXPECTED_MAX_TEAMS,ORACLE_MUTATION,teams,general_code,FALSE,1,,tests/5.1/env_var/test_omp_num_teams_env_2.c,"OMPVV_TEST_AND_SET_VERBOSE(errors, env != 2);","OMPVV_TEST_AND_SET_VERBOSE(errors, env != 3);"
+WRONG_EXPECTED_OMP_PLACES,ORACLE_MUTATION,runtime_api,runtime_api,FALSE,2,,tests/5.1/env_var/test_omp_places_env_ll_caches.c,"test = ret_val == NULL || strcmp(ret_val, ""ll_caches"");","test = ret_val == NULL || strcmp(ret_val, ""numa_domains"");"
+WRONG_EXPECTED_TEAMS_THREAD_LIMIT,ORACLE_MUTATION,teams,configuration,FALSE,1,,tests/5.1/env_var/test_omp_teams_thread_limit_env_2.c,"OMPVV_TEST_AND_SET(errors, env != 2);","OMPVV_TEST_AND_SET(errors, env != 3);"
+PARALLEL_MASTER_TASKLOOP_SIMD_TO_PARALLEL_TASKLOOP_SIMD,REMOVE_CLAUSE,parallel_master_taskloop_simd,master,FALSE,1,,tests/5.0/parallel_master_taskloop_simd/test_parallel_master_taskloop_simd.c,"#pragma omp parallel master taskloop simd num_threads(OMPVV_NUM_THREADS_HOST) shared(x, y, z, num_threads)","#pragma omp parallel taskloop simd num_threads(OMPVV_NUM_THREADS_HOST) shared(x, y, z, num_threads)"
+REMOVE_ADJUST_ARGS,REMOVE_CLAUSE,declare_variant,dispatch,FALSE,1,,tests/5.1/declare_variant/test_declare_variant_adjust_args.c,#pragma omp declare variant(add_dispatch) match(construct={dispatch}) adjust_args(need_device_ptr:arr),#pragma omp declare variant(add_dispatch) match(construct={dispatch})
+REMOVE_DEFAULT_FIRSTPRIVATE,REMOVE_CLAUSE,default,data_sharing,FALSE,2,,tests/5.1/default/test_default_firstprivate_parallel.c,#pragma omp parallel default(firstprivate) num_threads(OMPVV_NUM_THREADS_HOST),#pragma omp parallel num_threads(OMPVV_NUM_THREADS_HOST)
+REMOVE_FILTER,REMOVE_CLAUSE,masked,general_code,FALSE,1,,tests/5.1/masked/test_masked_filter.c,#pragma omp masked filter(3),#pragma omp masked
+REMOVE_FIRSTPRIVATE,REMOVE_CLAUSE,scope,data_sharing,FALSE,1,,tests/5.2/scope/test_scope_firstprivate_construct.c,#pragma omp scope firstprivate(test_int),#pragma omp scope
+REMOVE_PRIVATE,REMOVE_CLAUSE,scope,data_sharing,FALSE,1,,tests/5.1/scope/test_scope_private_construct.c,#pragma omp scope private(test_int),#pragma omp scope
+REMOVE_PRIVATE_FROM_SCOPE_ALLOCATE,REMOVE_CLAUSE,scope,data_sharing,FALSE,1,,tests/5.2/scope/test_scope_allocate_construct.c,#pragma omp scope private(arr) allocate(allocator(omp_low_lat_mem_alloc) : arr),#pragma omp scope allocate(allocator(omp_low_lat_mem_alloc) : arr)
+REMOVE_REDUCTION,REMOVE_CLAUSE,taskloop,reduction,FALSE,10,,tests/5.1/taskloop/test_taskloop_grainsize_strict.c,#pragma omp taskloop reduction(+: parallel_sum) grainsize(strict:1000),#pragma omp taskloop grainsize(strict:1000)
+REMOVE_TRANSPARENT_CLAUSE,REMOVE_CLAUSE,task,data_sharing,FALSE,2,,tests/6.0/task/test_task_transparent_export.c,"# pragma omp task shared(x, errors) transparent(omp_export)","# pragma omp task shared(x, errors)"
+REMOVE_TRANSPARENT_TASK,REMOVE_CLAUSE,task,data_sharing,FALSE,1,,tests/6.0/task/test_task_transparent.c,# pragma omp task shared(x) transparent(omp_import),/* transparent import task removed */
+REMOVE_ALWAYS_MODIFIER,REMOVE_CONSTRUCT,declare_mapper,mapping,FALSE,1,,tests/5.2/declare_mapper/test_declare_mapper_present.c,"#pragma omp declare mapper(default:myvec_t v) map(always, present, from: v, v.len, v.data[0:v.len])","#pragma omp declare mapper(default:myvec_t v) map(present, from: v, v.len, v.data[0:v.len])"
+REMOVE_DETACH,REMOVE_CONSTRUCT,task,dependency,FALSE,1,,tests/5.0/task/test_task_detach.c,#pragma omp task depend(out: y) detach(flag_event),#pragma omp task depend(out: y)
+REMOVE_DISPATCH,REMOVE_CONSTRUCT,declare_variant,dispatch,FALSE,1,,tests/5.1/declare_variant/test_declare_variant_adjust_args.c,#pragma omp dispatch,/* dispatch removed */
+REMOVE_MASKED,REMOVE_CONSTRUCT,masked,general_code,FALSE,1,,tests/5.1/masked/test_masked.c,#pragma omp masked,/* masked removed */
+REMOVE_PARALLEL,REMOVE_CONSTRUCT,parallel_master_taskloop,general_code,FALSE,3,,tests/5.0/parallel_master_taskloop/test_parallel_master_taskloop.c,#pragma omp parallel,/* parallel removed */
+REMOVE_PARALLEL_MESSAGE_REGION,REMOVE_CONSTRUCT,parallel,message_or_severity,FALSE,1,,tests/6.0/parallel/test_parallel_message.c,"#pragma omp parallel message(""Entering first parallel region."")",/* parallel message region removed */
+REMOVE_PARALLEL_SEVERITY_REGION,REMOVE_CONSTRUCT,parallel,message_or_severity,FALSE,1,,tests/6.0/parallel/test_parallel_severity.c,"#pragma omp parallel severity(warning) message(""Entering first parallel region."")",/* parallel severity region removed */
+REMOVE_SCOPE_REDUCTION,REMOVE_CONSTRUCT,scope,reduction,FALSE,1,,tests/5.1/scope/test_scope_reduction_construct.c,#pragma omp scope reduction(+:s),#pragma omp scope
+REMOVE_SHARED_SUM,REMOVE_CONSTRUCT,default,data_sharing,FALSE,1,,tests/5.1/default/test_task_default_private.c,#pragma omp task shared(sum) default(private),#pragma omp task default(private)
+REMOVE_SINGLE,REMOVE_CONSTRUCT,error,general_code,FALSE,6,,tests/5.1/error/test_error_at_execution.c,#pragma omp single,/* single removed */
+REMOVE_TARGET,REMOVE_CONSTRUCT,declare_mapper,general_code,FALSE,1,,tests/5.2/declare_mapper/test_declare_mapper_iterator.c,#pragma omp target,/* target removed */
+REMOVE_TASK_DEPEND_ARRAY,REMOVE_CONSTRUCT,taskwait,dependency,FALSE,1,,tests/5.1/taskwait/test_task_nowait.c,#pragma omp task depend(inout : test_arr) shared(test_arr),#pragma omp task shared(test_arr)
+REMOVE_TASK_DEPEND_SCALAR,REMOVE_CONSTRUCT,taskwait,dependency,FALSE,1,,tests/5.1/taskwait/test_task_nowait.c,#pragma omp task depend(inout: test_scalar) shared(test_scalar),#pragma omp task shared(test_scalar)
+REMOVE_TASK_DEPEND_X,REMOVE_CONSTRUCT,taskwait,dependency,FALSE,1,,tests/5.0/taskwait/test_taskwait_depend.c,#pragma omp task depend(inout: x) shared(x) // 1st Task,#pragma omp task shared(x) // 1st Task
+REMOVE_TASK_DEPEND_Y,REMOVE_CONSTRUCT,taskwait,dependency,FALSE,1,,tests/5.0/taskwait/test_taskwait_depend.c,#pragma omp task depend(inout: y) shared(y) // 2nd Task,#pragma omp task shared(y) // 2nd Task
+REMOVE_DEPEND,REMOVE_DEPENDENCY,task,dependency,FALSE,3,,tests/6.0/task/test_task_transparent_export.c,depend(out: x),
+REMOVE_DEPEND_INOUT,REMOVE_DEPENDENCY,task,dependency,FALSE,1,,tests/5.0/task/test_task_detach.c,#pragma omp task depend(inout: y),#pragma omp task
+REMOVE_DEPEND_IN_C,REMOVE_DEPENDENCY,task,dependency,FALSE,1,,tests/5.0/task/test_task_depend_mutexinoutset.c,#pragma omp task depend(in: c),#pragma omp task
+REMOVE_DEPEND_OUT_Y,REMOVE_DEPENDENCY,depend,dependency,FALSE,1,,tests/5.1/depend/test_depend_inout_omp_all_memory.c,#pragma omp task depend(out: y),#pragma omp task
+REMOVE_DOACROSS_SINK,REMOVE_DEPENDENCY,ordered,dependency,FALSE,2,,tests/5.2/ordered/test_ordered_doacross.c,#pragma omp ordered doacross(sink: i-1),/* ordered doacross sink removed */
+REMOVE_DOACROSS_SOURCE,REMOVE_DEPENDENCY,ordered,dependency,FALSE,2,,tests/5.2/ordered/test_ordered_doacross.c,#pragma omp ordered doacross(source:),/* ordered doacross source removed */
+REMOVE_IN_REDUCTION,REMOVE_DEPENDENCY,task,reduction,FALSE,1,,tests/5.0/task/test_task_in_reduction.c,#pragma omp task in_reduction(+: sum),#pragma omp task
+REMOVE_LOCK_COUNTPRIME,REMOVE_STATEMENT,task,runtime_api,FALSE,1,,tests/4.5/task/test_task_lock.c,omp_set_lock(&lock);,/* lock acquisition removed */
+REMOVE_ATOMIC,REMOVE_SYNCHRONIZATION,application_kernels,atomic,FALSE,3,,tests/4.5/application_kernels/reduction_separated_directives.c,#pragma omp atomic,
+REMOVE_ATOMIC_CAPTURE,REMOVE_SYNCHRONIZATION,parallel,atomic,FALSE,1,,tests/6.0/parallel/test_parallel_safesync.c,#pragma omp atomic capture,/* atomic capture removed */
+REMOVE_ATOMIC_COMPARE,REMOVE_SYNCHRONIZATION,atomic,atomic,FALSE,1,,tests/5.1/atomic/test_atomic_compare.c,#pragma omp atomic compare,/* atomic compare removed */
+REMOVE_ATOMIC_CONTENDED_NONSPEC,REMOVE_SYNCHRONIZATION,atomic,atomic,FALSE,1,,tests/5.0/atomic/test_atomic_hint.c,#pragma omp atomic hint(omp_sync_hint_contended+omp_sync_hint_nonspeculative),/* atomic removed */
+REMOVE_ATOMIC_DECREMENT,REMOVE_SYNCHRONIZATION,masked,atomic,FALSE,2,,tests/5.1/masked/test_masked.c,#pragma omp atomic,/* atomic removed */
+REMOVE_ATOMIC_RELEASE,REMOVE_SYNCHRONIZATION,parallel,atomic,FALSE,1,,tests/6.0/parallel/test_parallel_safesync.c,#pragma omp atomic release,/* atomic release removed */
+REMOVE_ATOMIC_UNUSED_ENUM,REMOVE_SYNCHRONIZATION,atomic,atomic,FALSE,1,,tests/5.0/atomic/test_atomic_num_hint.c,#pragma omp atomic hint(0X1024) //As of OMP Spec 5.0 only values till 0x8 have been taken,/* atomic removed */
+REMOVE_ATOMIC_UPDATE,REMOVE_SYNCHRONIZATION,atomic,atomic,FALSE,3,,tests/5.0/parallel_for_simd/test_parallel_for_simd_atomic.c,#pragma omp atomic update,/* atomic removed */
+REMOVE_TASKWAIT,REMOVE_SYNCHRONIZATION,task,taskwait,FALSE,2,,tests/6.0/task/test_task_threadset_ancestor_THREADS_RESERVE.c,#pragma omp taskwait,/* taskwait removed */
+REMOVE_TASKWAIT_DEPEND_X,REMOVE_SYNCHRONIZATION,taskwait,dependency,FALSE,1,,tests/5.0/taskwait/test_taskwait_depend.c,#pragma omp taskwait depend(in: x) //Requires the completion of the 1st task,/* taskwait depend(in: x) removed */
+REMOVE_TASKWAIT_DEPEND_XY,REMOVE_SYNCHRONIZATION,taskwait,dependency,FALSE,1,,tests/5.0/taskwait/test_taskwait_depend.c,"#pragma omp taskwait depend(in: x,y) //Requires the completion of both tasks","/* taskwait depend(in: x,y) removed */"
+REMOVE_TASKWAIT_NOWAIT_DEPEND,REMOVE_SYNCHRONIZATION,taskwait,dependency,FALSE,1,,tests/5.1/taskwait/test_task_nowait.c,#pragma omp taskwait nowait depend(inout: test_scalar) depend(out: test_arr),/* taskwait nowait depend removed */
