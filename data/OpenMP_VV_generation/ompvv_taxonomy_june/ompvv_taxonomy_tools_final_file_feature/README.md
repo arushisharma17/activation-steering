@@ -53,29 +53,45 @@ Those are the validated test-failing bugs suitable for APR / bug-fixing evaluati
 
 Passing mutations are written separately as rejected candidates.
 
-## Final mutation type vocabulary
+## Final Mutation Type Vocabulary
 
-| mutation_type | Meaning |
-|---|---|
-| `REMOVE_CONSTRUCT` | Remove an OpenMP directive or full construct. |
-| `REMOVE_CLAUSE` | Remove a clause from an existing directive. |
-| `REMOVE_SYNCHRONIZATION` | Remove synchronization behavior such as `atomic`, `barrier`, `taskwait`, `ordered`, `flush`, or `cancel`. |
-| `REMOVE_DEPENDENCY` | Remove dependency or reduction-participation clauses such as `depend`, `in_reduction`, `task_reduction`, or doacross source/sink. |
-| `CHANGE_OPERATOR` | Change an arithmetic, logical, comparison, bitwise, or reduction operator. |
-| `CHANGE_CONSTANT` | Change a numeric constant or compile-time value. |
-| `CHANGE_VARIABLE` | Change the variable, array, buffer, index, or reference being used. This category is allowed but currently not present in the failing-only benchmark. |
-| `CHANGE_CLAUSE` | Replace one OpenMP clause or clause argument with another. |
-| `CHANGE_MAPPING` | Change OpenMP target mapping behavior such as `tofrom -> to`, `from -> to`, `from -> delete`, or target data mapping. |
-| `CHANGE_RUNTIME_CALL` | Change/remove OpenMP runtime API calls or their arguments. |
-| `CHANGE_LOOP_BOUND` | Change loop bounds/ranges so iterations are skipped or altered. |
-| `CHANGE_ASSIGNMENT` | Change the computation or assignment in ordinary code. |
-| `REMOVE_STATEMENT` | Delete an ordinary non-pragma statement. |
-| `CHANGE_CONFIGURATION` | Change OpenMP execution configuration such as `num_threads`, `num_teams`, `thread_limit`, `grainsize`, `tile sizes`, or allocator alignment. |
-| `CHANGE_CONDITION` | Change predicate expressions such as `if`, `final`, `nocontext`, `novariants`, `graph_reset`, or assume predicates. |
-| `CHANGE_SCAN` | Change scan-specific semantics such as `inclusive -> exclusive`. |
-| `CHANGE_FORMAT_STRING` | Change format strings or affinity format tokens. This category is allowed but currently not present in the failing-only benchmark. |
-| `ORACLE_MUTATION` | Change the test oracle/check itself. Usually exclude from APR training or report separately. |
+| Mutation Type | Meaning | Example |
+|---------------|----------|---------|
+| `REMOVE_CONSTRUCT` | Remove an OpenMP directive or full construct. | `#pragma omp target` → *(removed)* |
+| `REMOVE_CLAUSE` | Remove a clause from an existing directive. | `reduction(+:sum)` → *(removed)* |
+| `REMOVE_SYNCHRONIZATION` | Remove synchronization behavior such as `atomic`, `barrier`, `taskwait`, `ordered`, `flush`, or `cancel`. | `#pragma omp atomic` → *(removed)* |
+| `REMOVE_DEPENDENCY` | Remove dependency or reduction-participation clauses. | `depend(in:x)` → *(removed)* |
+| `CHANGE_OPERATOR` | Change an arithmetic, logical, comparison, bitwise, or reduction operator. | `reduction(max:result)` → `reduction(min:result)` |
+| `CHANGE_CONSTANT` | Change a numeric constant or compile-time value. | `thread_limit(64)` → `thread_limit(32)` |
+| `CHANGE_VARIABLE` | Change the variable, array, buffer, index, or reference being used. *(Not present in the current failing-only benchmark.)* | `depend(in:x)` → `depend(in:y)` |
+| `CHANGE_CLAUSE` | Replace one OpenMP clause or clause argument with another. | `bind(parallel)` → `bind(thread)` |
+| `CHANGE_MAPPING` | Change OpenMP target mapping behavior. | `map(tofrom:a)` → `map(to:a)` |
+| `CHANGE_RUNTIME_CALL` | Change/remove OpenMP runtime API calls or arguments. | `omp_set_num_teams(8)` → `omp_set_num_teams(7)` |
+| `CHANGE_LOOP_BOUND` | Change loop bounds/ranges so iterations are skipped or altered. | `i != N` → `i < N-1` |
+| `CHANGE_ASSIGNMENT` | Change the computation or assignment in ordinary code. | `a[i] += b[i]` → `a[i] += b[i] + 1` |
+| `REMOVE_STATEMENT` | Delete an ordinary non-pragma statement. | `sum += a[i];` → *(removed)* |
+| `CHANGE_CONFIGURATION` | Change OpenMP execution configuration. | `num_threads(8)` → `num_threads(1)` |
+| `CHANGE_CONDITION` | Change predicate expressions. | `if(0)` → `if(1)` |
+| `CHANGE_SCAN` | Change scan-specific semantics. | `inclusive` → `exclusive` |
+| `CHANGE_FORMAT_STRING` | Change format strings or affinity format tokens. *(Not present in the current failing-only benchmark.)* | `"OMP: %0.3f"` → `"OMP: %d"` |
+| `ORACLE_MUTATION` | Change the test oracle/check itself. Usually excluded from APR training and evaluation. | `OMPVV_TEST_AND_SET(errors, x == 5)` → `OMPVV_TEST_AND_SET(errors, x == 4)` |
 
+### Example Raw Bug Types
+
+| Mutation Type | Example Raw Bug Types |
+|---------------|----------------------|
+| `REMOVE_CONSTRUCT` | `REMOVE_TARGET`, `REMOVE_TASK`, `REMOVE_TASKGRAPH`, `REMOVE_PARALLEL` |
+| `REMOVE_CLAUSE` | `REMOVE_PRIVATE`, `REMOVE_FIRSTPRIVATE`, `REMOVE_REDUCTION`, `REMOVE_NOWAIT` |
+| `REMOVE_SYNCHRONIZATION` | `REMOVE_ATOMIC`, `REMOVE_BARRIER`, `REMOVE_TASKWAIT`, `REMOVE_ORDERED` |
+| `REMOVE_DEPENDENCY` | `REMOVE_DEPEND_IN`, `REMOVE_DEPEND_OUT`, `REMOVE_IN_REDUCTION`, `REMOVE_DOACROSS_SINK` |
+| `CHANGE_OPERATOR` | `BITAND_TO_BITOR`, `MAX_TO_MIN`, `MIN_TO_MAX`, `LOGICAL_AND_TO_OR` |
+| `CHANGE_CLAUSE` | `BIND_PARALLEL_TO_THREAD`, `PRIVATE_TO_SHARED`, `SEVERITY_WARNING_TO_FATAL` |
+| `CHANGE_LOOP_BOUND` | `REL_OP_NEQ_TO_LT`, `SKIP_LAST_ITERATION` |
+| `CHANGE_ASSIGNMENT` | `WRONG_ARRAY_UPDATE`, `WRONG_LOOP_BODY_ASSIGNMENT`, `WRONG_TIME_ASSIGNMENT` |
+| `CHANGE_CONFIGURATION` | `NUM_THREADS_TO_ONE`, `NUM_TEAMS_TO_ONE`, `WRONG_TILE_SIZE` |
+| `CHANGE_CONDITION` | `IF0_TO_IF1`, `FINAL_ISFINAL_TO_NOT_ISFINAL` |
+| `CHANGE_MAPPING` | `MAP_TOFROM_TO_TO`, `MAP_FROM_TO_TO` |
+| `ORACLE_MUTATION` | `WRONG_EXPECTED_VALUE`, `WRONG_RETURN_CHECK` |
 There should be no `NEEDS_REVIEW` labels in the final mapping. If any appear, the mapping is incomplete.
 
 ## File-feature `omp_construct`
