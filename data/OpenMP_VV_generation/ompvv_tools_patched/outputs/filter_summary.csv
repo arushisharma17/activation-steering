@@ -1,0 +1,4 @@
+subset,filter,count
+validated_failing_bugs,passed_most_recent_test == false,218
+rejected_passing_mutations,passed_most_recent_test == true,154
+total,all rows,372
