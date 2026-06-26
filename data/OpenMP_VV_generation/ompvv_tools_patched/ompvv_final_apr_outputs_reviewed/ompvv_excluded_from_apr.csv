@@ -1,0 +1,50 @@
+source_id,category,bug_family,bug_type,confidence,original_statement,buggy_statement,targeted_oracle,expected_failure_mode,line_number,file_name_updated,original_code,buggy_code,_source_file,passed_most_recent_test,test_status,passed_original_code,original_test_status,notes,mutation_type,omp_construct,bug_omp_concept,source_dir,openmp_version,taxonomy_status,include_in_apr,excluded_from_apr_reason
+tests/5.1/runtime_calls/test_omp_display_env.c,runtime_calls,oracle_value,RETURN_VALUE_0_TO_1,high,return 0;,return 1;,test_omp_display_env() == 0,test returns nonzero even though runtime call completes,16,test_omp_display_env_RETURN_ERROR.c,"//===-- test_omp_display_env.c --------------------------------------------===//
+//
+// OpenMP API Version 5.1 Aug 2021
+//
+// Tests the behavior of omp_display_env. This test should print out the OpenMP
+// version number and the initial values of the ICV's associated with the
+// environment variables
+//
+//===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+int test_omp_display_env(){
+        omp_display_env(1);
+        return 0;
+}
+
+int main(){
+        OMPVV_REPORT_AND_RETURN(test_omp_display_env());
+}
+","//===-- test_omp_display_env.c --------------------------------------------===//
+//
+// OpenMP API Version 5.1 Aug 2021
+//
+// Tests the behavior of omp_display_env. This test should print out the OpenMP
+// version number and the initial values of the ICV's associated with the
+// environment variables
+//
+//===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+int test_omp_display_env(){
+        omp_display_env(1);
+        return 1;
+}
+
+int main(){
+        OMPVV_REPORT_AND_RETURN(test_omp_display_env());
+}
+",openmp_batch_131_150_optionA_full_multivariant.csv,False,failed,True,passed,,ORACLE_MUTATION,runtime_api,general_code,tests/5.1/runtime_calls,5.1,resolved,False,oracle_mutation

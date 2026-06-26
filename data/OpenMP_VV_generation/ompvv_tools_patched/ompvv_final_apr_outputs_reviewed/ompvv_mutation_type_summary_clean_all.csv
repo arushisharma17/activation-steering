@@ -1,0 +1,17 @@
+mutation_type,taxonomy_status,include_in_apr,excluded_from_apr_reason,num_rows
+CHANGE_ASSIGNMENT,resolved,True,,130
+CHANGE_MAPPING,resolved,True,,128
+CHANGE_OPERATOR,resolved,True,,67
+CHANGE_CONSTANT,resolved,True,,62
+CHANGE_CONFIGURATION,resolved,True,,53
+REMOVE_CONSTRUCT,resolved,True,,42
+CHANGE_LOOP_BOUND,resolved,True,,37
+REMOVE_CLAUSE,resolved,True,,36
+REMOVE_SYNCHRONIZATION,resolved,True,,24
+CHANGE_CLAUSE,resolved,True,,23
+REMOVE_DEPENDENCY,resolved,True,,16
+CHANGE_CONDITION,resolved,True,,13
+CHANGE_RUNTIME_CALL,resolved,True,,7
+CHANGE_VARIABLE,resolved,True,,6
+REMOVE_STATEMENT,resolved,True,,2
+ORACLE_MUTATION,resolved,False,oracle_mutation,1
