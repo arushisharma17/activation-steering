@@ -1,0 +1,11 @@
+stage,num_rows
+loaded,884
+buggy_fails,884
+buggy_passes_or_unknown_removed,0
+original_passes,647
+original_fails_or_unknown_removed,237
+clean_buggy_fail_original_pass,647
+needs_review_rows,0
+resolved_rows,647
+final_apr_15_rows,646
+excluded_from_apr_rows,1

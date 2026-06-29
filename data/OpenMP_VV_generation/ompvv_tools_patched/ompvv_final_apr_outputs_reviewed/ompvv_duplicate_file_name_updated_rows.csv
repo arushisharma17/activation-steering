@@ -1,0 +1,5673 @@
+source_id,category,bug_family,bug_type,confidence,original_statement,buggy_statement,targeted_oracle,expected_failure_mode,line_number,file_name_updated,original_code,buggy_code,_source_file,passed_most_recent_test,test_status,passed_original_code,original_test_status,notes,mutation_type,omp_construct,bug_omp_concept,source_dir,openmp_version,taxonomy_status,include_in_apr,excluded_from_apr_reason
+tests/5.0/target_data/test_target_data_use_device_ptr.c,target_data,target_mapping,REMOVE_USE_DEVICE_PTR,high,#pragma omp target data map(to: array_device[0:N]) use_device_ptr(array_device),#pragma omp target data map(to: array_device[0:N]),oracle checks array_host[i] == i after target uses device pointer,use_device_ptr is removed from target data,37,test_target_data_use_device_ptr_REMOVE_USE_DEVICE_PTR.c,"//===-- test_target_data_use_device_ptr.c ---------------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This file is a test for the use_device_ptr when used with the map clause
+// with target data directive. This test uses arrays of size N which values
+// are modified on the  device and tested in the host. Once the array has
+// been mapped to the device, the use_device_ptr should be able to be used
+// with the ptr to the array and subsequent modify values on the device.
+// This test focuses on address conversions of use_device_ptr clauses will
+// occur as if performed after all variables are mapped according to those
+// map clauses.
+//
+//===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+
+#define N 100
+
+int main() {
+  int errors = 0;
+  int *array_device = NULL;
+  int *array_host = NULL;
+
+  array_device = (int *)malloc(N*sizeof(int));
+  array_host = (int *)malloc(N*sizeof(int));
+
+  for (int i = 0; i < N; ++i){
+    array_device[i] = i;
+    array_host[i] = 0;
+  }
+  OMPVV_TEST_OFFLOADING;
+
+#pragma omp target data map(to: array_device[0:N]) use_device_ptr(array_device)
+    {
+#pragma omp target is_device_ptr(array_device) map(tofrom: array_host[0:N])
+      {
+        for (int i = 0; i < N; ++i) {
+          array_host[i] += *(array_device + i);
+        }
+      } // end target
+    } // end target data
+
+  // checking results
+  for (int i = 0; i < N; ++i) {
+    OMPVV_TEST_AND_SET(errors, array_host[i] != i);
+  }
+
+  free(array_device);
+  free(array_host);
+
+  OMPVV_REPORT_AND_RETURN(errors);
+
+}
+","//===-- test_target_data_use_device_ptr.c ---------------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This file is a test for the use_device_ptr when used with the map clause
+// with target data directive. This test uses arrays of size N which values
+// are modified on the  device and tested in the host. Once the array has
+// been mapped to the device, the use_device_ptr should be able to be used
+// with the ptr to the array and subsequent modify values on the device.
+// This test focuses on address conversions of use_device_ptr clauses will
+// occur as if performed after all variables are mapped according to those
+// map clauses.
+//
+//===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+
+#define N 100
+
+int main() {
+  int errors = 0;
+  int *array_device = NULL;
+  int *array_host = NULL;
+
+  array_device = (int *)malloc(N*sizeof(int));
+  array_host = (int *)malloc(N*sizeof(int));
+
+  for (int i = 0; i < N; ++i){
+    array_device[i] = i;
+    array_host[i] = 0;
+  }
+  OMPVV_TEST_OFFLOADING;
+
+#pragma omp target data map(to: array_device[0:N])
+    {
+#pragma omp target is_device_ptr(array_device) map(tofrom: array_host[0:N])
+      {
+        for (int i = 0; i < N; ++i) {
+          array_host[i] += *(array_device + i);
+        }
+      } // end target
+    } // end target data
+
+  // checking results
+  for (int i = 0; i < N; ++i) {
+    OMPVV_TEST_AND_SET(errors, array_host[i] != i);
+  }
+
+  free(array_device);
+  free(array_host);
+
+  OMPVV_REPORT_AND_RETURN(errors);
+
+}
+",openmp_gpu_batch_16_optionA_full_multivariant.csv,False,failed,True,passed,,REMOVE_CONSTRUCT,target_mapping,mapping,tests/5.0/target_data,5.0,resolved,True,
+tests/4.5/target_data/test_target_data_use_device_ptr.c,target_data,target_mapping,REMOVE_USE_DEVICE_PTR,high,#pragma omp target data map(map_dummy) use_device_ptr(array_device),#pragma omp target data map(map_dummy),"OMPVV_TEST_AND_SET(errors, array_host[i] != 2*i)",array_device is not exposed as a device pointer for the nested target,35,test_target_data_use_device_ptr_REMOVE_USE_DEVICE_PTR.c,"//===-- test_target_data_use_device_ptr.c - test of use_device_ptr on target data ----===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This file is a test for the use_device_ptr when used with the map
+// clause. This test uses arrays of size N which values are modified on the
+// device and tested in the host. Once the array has been mapped to the device,
+// the use_device_ptr should be able to be used with the ptr to the array and
+// subsequent modify values on the device.
+//
+//===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+
+#define N 1000
+
+int main() {
+  int errors = 0, map_dummy;
+  int *array_device = NULL;
+  int *array_host = NULL;
+
+  array_device = (int *)malloc(N*sizeof(int));
+  array_host = (int *)malloc(N*sizeof(int));
+
+  for (int i = 0; i < N; ++i)
+    array_host[i] = i;
+
+  OMPVV_TEST_OFFLOADING;
+
+#pragma omp target data map(tofrom: array_device[0:N])
+  {
+#pragma omp target data map(map_dummy) use_device_ptr(array_device)
+    {
+#pragma omp target is_device_ptr(array_device) map(tofrom: array_host[0:N])
+      {
+        for (int i = 0; i < N; ++i) {
+          array_device[i] = i;
+          array_host[i] += array_device[i];
+        }
+      } // end target
+    } // end target data
+  } // end target data
+
+  // checking results
+  for (int i = 0; i < N; ++i) {
+    OMPVV_TEST_AND_SET(errors, array_host[i] != 2*i);
+  }
+
+  free(array_device);
+  free(array_host);
+
+  OMPVV_REPORT_AND_RETURN(errors);
+
+}
+","//===-- test_target_data_use_device_ptr.c - test of use_device_ptr on target data ----===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This file is a test for the use_device_ptr when used with the map
+// clause. This test uses arrays of size N which values are modified on the
+// device and tested in the host. Once the array has been mapped to the device,
+// the use_device_ptr should be able to be used with the ptr to the array and
+// subsequent modify values on the device.
+//
+//===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+
+#define N 1000
+
+int main() {
+  int errors = 0, map_dummy;
+  int *array_device = NULL;
+  int *array_host = NULL;
+
+  array_device = (int *)malloc(N*sizeof(int));
+  array_host = (int *)malloc(N*sizeof(int));
+
+  for (int i = 0; i < N; ++i)
+    array_host[i] = i;
+
+  OMPVV_TEST_OFFLOADING;
+
+#pragma omp target data map(tofrom: array_device[0:N])
+  {
+#pragma omp target data map(map_dummy)
+    {
+#pragma omp target is_device_ptr(array_device) map(tofrom: array_host[0:N])
+      {
+        for (int i = 0; i < N; ++i) {
+          array_device[i] = i;
+          array_host[i] += array_device[i];
+        }
+      } // end target
+    } // end target data
+  } // end target data
+
+  // checking results
+  for (int i = 0; i < N; ++i) {
+    OMPVV_TEST_AND_SET(errors, array_host[i] != 2*i);
+  }
+
+  free(array_device);
+  free(array_host);
+
+  OMPVV_REPORT_AND_RETURN(errors);
+
+}
+",openmp_gpu_batch_2_optionA_full_multivariant.csv,False,failed,True,passed,,REMOVE_CONSTRUCT,target_mapping,mapping,tests/4.5/target_data,4.5,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_add.c,target_teams_distribute,loop_body,BODY_ADD_TO_SUB,high,total += a[x] + b[x];,total -= a[x] + b[x];,oracle checks host_total == total,loop body updates reduction variable using the wrong operator,36,test_target_teams_distribute_reduction_add_BODY_ADD_TO_SUB.c,"//===--- test_target_teams_distribute_reduction_add.c-------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the add operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_add() {
+  int a[N];
+  int b[N];
+  int total = 0;
+  int host_total = 0;
+  int errors = 0;
+  int num_teams[N];
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1;
+    b[x] = x;
+    num_teams[x] = -1;
+  }
+
+#pragma omp target teams distribute reduction(+:total) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    total += a[x] + b[x];
+  }
+
+  for (int x = 0; x < N; ++x) {
+    host_total += a[x] + b[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_total != total);
+  OMPVV_ERROR_IF(host_total != total, ""Total on device is %d but expected total from host is %d."", total, host_total);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_add() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_add.c-------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the add operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_add() {
+  int a[N];
+  int b[N];
+  int total = 0;
+  int host_total = 0;
+  int errors = 0;
+  int num_teams[N];
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1;
+    b[x] = x;
+    num_teams[x] = -1;
+  }
+
+#pragma omp target teams distribute reduction(+:total) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    total -= a[x] + b[x];
+  }
+
+  for (int x = 0; x < N; ++x) {
+    host_total += a[x] + b[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_total != total);
+  OMPVV_ERROR_IF(host_total != total, ""Total on device is %d but expected total from host is %d."", total, host_total);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_add() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,CHANGE_ASSIGNMENT,target_mapping,general_code,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_add.c,target_teams_distribute,loop_body,BODY_ADD_TO_SUB,high,total += a[x] + b[x];,total -= a[x] + b[x];,oracle checks host_total == total,loop reduction update expression uses wrong operator,36,test_target_teams_distribute_reduction_add_BODY_ADD_TO_SUB.c,"//===--- test_target_teams_distribute_reduction_add.c-------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the add operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_add() {
+  int a[N];
+  int b[N];
+  int total = 0;
+  int host_total = 0;
+  int errors = 0;
+  int num_teams[N];
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1;
+    b[x] = x;
+    num_teams[x] = -1;
+  }
+
+#pragma omp target teams distribute reduction(+:total) map(to: a[0:N], b[0:N]) map(tofrom: total, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    total += a[x] + b[x];
+  }
+
+  for (int x = 0; x < N; ++x) {
+    host_total += a[x] + b[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_total != total);
+  OMPVV_ERROR_IF(host_total != total, ""Total on device is %d but expected total from host is %d."", total, host_total);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_add() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_add.c-------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the add operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_add() {
+  int a[N];
+  int b[N];
+  int total = 0;
+  int host_total = 0;
+  int errors = 0;
+  int num_teams[N];
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1;
+    b[x] = x;
+    num_teams[x] = -1;
+  }
+
+#pragma omp target teams distribute reduction(+:total) map(to: a[0:N], b[0:N]) map(tofrom: total, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    total -= a[x] + b[x];
+  }
+
+  for (int x = 0; x < N; ++x) {
+    host_total += a[x] + b[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_total != total);
+  OMPVV_ERROR_IF(host_total != total, ""Total on device is %d but expected total from host is %d."", total, host_total);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_add() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_18_optionA_full_multivariant.csv,False,failed,True,passed,,CHANGE_ASSIGNMENT,target_mapping,general_code,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_add.c,target_teams_distribute,reduction,REMOVE_REDUCTION,medium,"#pragma omp target teams distribute reduction(+:total) map(to: a[0:N], b[0:N]) map(tofrom: total, num_teams[0:N])",#pragma omp target teams distribute,oracle checks host_total == total,"reduction clause is removed, making shared reduction variable unsafe",33,test_target_teams_distribute_reduction_add_REMOVE_REDUCTION.c,"//===--- test_target_teams_distribute_reduction_add.c-------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the add operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_add() {
+  int a[N];
+  int b[N];
+  int total = 0;
+  int host_total = 0;
+  int errors = 0;
+  int num_teams[N];
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1;
+    b[x] = x;
+    num_teams[x] = -1;
+  }
+
+#pragma omp target teams distribute reduction(+:total) map(to: a[0:N], b[0:N]) map(tofrom: total, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    total += a[x] + b[x];
+  }
+
+  for (int x = 0; x < N; ++x) {
+    host_total += a[x] + b[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_total != total);
+  OMPVV_ERROR_IF(host_total != total, ""Total on device is %d but expected total from host is %d."", total, host_total);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_add() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_add.c-------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the add operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_add() {
+  int a[N];
+  int b[N];
+  int total = 0;
+  int host_total = 0;
+  int errors = 0;
+  int num_teams[N];
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1;
+    b[x] = x;
+    num_teams[x] = -1;
+  }
+
+#pragma omp target teams distribute
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    total += a[x] + b[x];
+  }
+
+  for (int x = 0; x < N; ++x) {
+    host_total += a[x] + b[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_total != total);
+  OMPVV_ERROR_IF(host_total != total, ""Total on device is %d but expected total from host is %d."", total, host_total);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_add() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_18_optionA_full_multivariant.csv,False,failed,True,passed,,REMOVE_CLAUSE,taskloop,reduction,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_add.c,target_teams_distribute,reduction,REMOVE_REDUCTION,medium,#pragma omp target teams distribute reduction(+:total) defaultmap(tofrom:scalar),#pragma omp target teams distribute defaultmap(tofrom:scalar),oracle checks host_total == total,"reduction clause is removed, making the reduction variable unsafe or semantically wrong",33,test_target_teams_distribute_reduction_add_REMOVE_REDUCTION.c,"//===--- test_target_teams_distribute_reduction_add.c-------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the add operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_add() {
+  int a[N];
+  int b[N];
+  int total = 0;
+  int host_total = 0;
+  int errors = 0;
+  int num_teams[N];
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1;
+    b[x] = x;
+    num_teams[x] = -1;
+  }
+
+#pragma omp target teams distribute reduction(+:total) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    total += a[x] + b[x];
+  }
+
+  for (int x = 0; x < N; ++x) {
+    host_total += a[x] + b[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_total != total);
+  OMPVV_ERROR_IF(host_total != total, ""Total on device is %d but expected total from host is %d."", total, host_total);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_add() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_add.c-------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the add operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_add() {
+  int a[N];
+  int b[N];
+  int total = 0;
+  int host_total = 0;
+  int errors = 0;
+  int num_teams[N];
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1;
+    b[x] = x;
+    num_teams[x] = -1;
+  }
+
+#pragma omp target teams distribute defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    total += a[x] + b[x];
+  }
+
+  for (int x = 0; x < N; ++x) {
+    host_total += a[x] + b[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_total != total);
+  OMPVV_ERROR_IF(host_total != total, ""Total on device is %d but expected total from host is %d."", total, host_total);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_add() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,REMOVE_CLAUSE,taskloop,reduction,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_bitand.c,target_teams_distribute,loop_body,BODY_BITAND_TO_BITOR,high,b = b & a[x];,b = b | a[x];,oracle checks b == host_b,loop reduction update expression uses wrong operator,57,test_target_teams_distribute_reduction_bitand_BODY_BITAND_TO_BITOR.c,"//===--- test_target_teams_distribute_reduction_bitand.c---------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitand operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 512
+
+int test_bitand() {
+  unsigned int a[N];
+  double false_margin = pow(exp(1), log(.5)/N); // See the 'and' operator test for
+  int errors = 0;                               // an exaplantion of this math.
+  int num_teams[N];
+  int have_true = 0, have_false = 0;
+  int num_attempts = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX < false_margin) {
+          a[x] += 1 << y;
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+  for (int x = 0; x < 16; ++x) {
+    b = b + (1 << x);
+  }
+
+#pragma omp target teams distribute reduction(&:b) map(to: a[0:N]) map(tofrom: b, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b & a[x];
+  }
+
+  unsigned int host_b = a[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b & a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitand() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_bitand.c---------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitand operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 512
+
+int test_bitand() {
+  unsigned int a[N];
+  double false_margin = pow(exp(1), log(.5)/N); // See the 'and' operator test for
+  int errors = 0;                               // an exaplantion of this math.
+  int num_teams[N];
+  int have_true = 0, have_false = 0;
+  int num_attempts = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX < false_margin) {
+          a[x] += 1 << y;
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+  for (int x = 0; x < 16; ++x) {
+    b = b + (1 << x);
+  }
+
+#pragma omp target teams distribute reduction(&:b) map(to: a[0:N]) map(tofrom: b, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b | a[x];
+  }
+
+  unsigned int host_b = a[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b & a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitand() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_18_optionA_full_multivariant.csv,False,failed,True,passed,,CHANGE_ASSIGNMENT,target_mapping,general_code,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_bitand.c,target_teams_distribute,loop_body,BODY_BITAND_TO_BITOR,high,b = b & a[x];,b = b | a[x];,oracle checks b == host_b,loop body updates reduction variable using the wrong operator,57,test_target_teams_distribute_reduction_bitand_BODY_BITAND_TO_BITOR.c,"//===--- test_target_teams_distribute_reduction_bitand.c---------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitand operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 512
+
+int test_bitand() {
+  unsigned int a[N];
+  double false_margin = pow(exp(1), log(.5)/N); // See the 'and' operator test for
+  int errors = 0;                               // an exaplantion of this math.
+  int num_teams[N];
+  int num_attempts = 0;
+  int have_true = 0, have_false = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX < false_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+  for (int x = 0; x < 16; ++x) {
+    b = b + (1 << x);
+  }
+
+#pragma omp target teams distribute reduction(&:b) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b & a[x];
+  }
+
+  unsigned int host_b = a[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b & a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitand() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_bitand.c---------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitand operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 512
+
+int test_bitand() {
+  unsigned int a[N];
+  double false_margin = pow(exp(1), log(.5)/N); // See the 'and' operator test for
+  int errors = 0;                               // an exaplantion of this math.
+  int num_teams[N];
+  int num_attempts = 0;
+  int have_true = 0, have_false = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX < false_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+  for (int x = 0; x < 16; ++x) {
+    b = b + (1 << x);
+  }
+
+#pragma omp target teams distribute reduction(&:b) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b | a[x];
+  }
+
+  unsigned int host_b = a[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b & a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitand() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,CHANGE_ASSIGNMENT,target_mapping,general_code,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_bitand.c,target_teams_distribute,reduction,REDUCTION_BITAND_TO_BITOR,high,"#pragma omp target teams distribute reduction(&:b) map(to: a[0:N]) map(tofrom: b, num_teams[0:N])","#pragma omp target teams distribute reduction(|:b) map(to: a[0:N]) map(tofrom: b, num_teams[0:N])",oracle checks b == host_b,reduction operator changes to wrong operator,54,test_target_teams_distribute_reduction_bitand_REDUCTION_BITAND_TO_BITOR.c,"//===--- test_target_teams_distribute_reduction_bitand.c---------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitand operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 512
+
+int test_bitand() {
+  unsigned int a[N];
+  double false_margin = pow(exp(1), log(.5)/N); // See the 'and' operator test for
+  int errors = 0;                               // an exaplantion of this math.
+  int num_teams[N];
+  int have_true = 0, have_false = 0;
+  int num_attempts = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX < false_margin) {
+          a[x] += 1 << y;
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+  for (int x = 0; x < 16; ++x) {
+    b = b + (1 << x);
+  }
+
+#pragma omp target teams distribute reduction(&:b) map(to: a[0:N]) map(tofrom: b, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b & a[x];
+  }
+
+  unsigned int host_b = a[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b & a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitand() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_bitand.c---------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitand operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 512
+
+int test_bitand() {
+  unsigned int a[N];
+  double false_margin = pow(exp(1), log(.5)/N); // See the 'and' operator test for
+  int errors = 0;                               // an exaplantion of this math.
+  int num_teams[N];
+  int have_true = 0, have_false = 0;
+  int num_attempts = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX < false_margin) {
+          a[x] += 1 << y;
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+  for (int x = 0; x < 16; ++x) {
+    b = b + (1 << x);
+  }
+
+#pragma omp target teams distribute reduction(|:b) map(to: a[0:N]) map(tofrom: b, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b & a[x];
+  }
+
+  unsigned int host_b = a[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b & a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitand() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_18_optionA_full_multivariant.csv,False,failed,True,passed,,CHANGE_OPERATOR,target_mapping,mapping,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_bitand.c,target_teams_distribute,reduction,REDUCTION_BITAND_TO_BITOR,high,#pragma omp target teams distribute reduction(&:b) defaultmap(tofrom:scalar),#pragma omp target teams distribute reduction(|:b) defaultmap(tofrom:scalar),oracle checks b == host_b,target teams distribute reduction operator is changed,54,test_target_teams_distribute_reduction_bitand_REDUCTION_BITAND_TO_BITOR.c,"//===--- test_target_teams_distribute_reduction_bitand.c---------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitand operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 512
+
+int test_bitand() {
+  unsigned int a[N];
+  double false_margin = pow(exp(1), log(.5)/N); // See the 'and' operator test for
+  int errors = 0;                               // an exaplantion of this math.
+  int num_teams[N];
+  int num_attempts = 0;
+  int have_true = 0, have_false = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX < false_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+  for (int x = 0; x < 16; ++x) {
+    b = b + (1 << x);
+  }
+
+#pragma omp target teams distribute reduction(&:b) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b & a[x];
+  }
+
+  unsigned int host_b = a[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b & a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitand() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_bitand.c---------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitand operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 512
+
+int test_bitand() {
+  unsigned int a[N];
+  double false_margin = pow(exp(1), log(.5)/N); // See the 'and' operator test for
+  int errors = 0;                               // an exaplantion of this math.
+  int num_teams[N];
+  int num_attempts = 0;
+  int have_true = 0, have_false = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX < false_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+  for (int x = 0; x < 16; ++x) {
+    b = b + (1 << x);
+  }
+
+#pragma omp target teams distribute reduction(|:b) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b & a[x];
+  }
+
+  unsigned int host_b = a[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b & a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitand() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,CHANGE_OPERATOR,target_mapping,mapping,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_bitand.c,target_teams_distribute,reduction,REMOVE_REDUCTION,medium,"#pragma omp target teams distribute reduction(&:b) map(to: a[0:N]) map(tofrom: b, num_teams[0:N])",#pragma omp target teams distribute,oracle checks b == host_b,"reduction clause is removed, making shared reduction variable unsafe",54,test_target_teams_distribute_reduction_bitand_REMOVE_REDUCTION.c,"//===--- test_target_teams_distribute_reduction_bitand.c---------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitand operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 512
+
+int test_bitand() {
+  unsigned int a[N];
+  double false_margin = pow(exp(1), log(.5)/N); // See the 'and' operator test for
+  int errors = 0;                               // an exaplantion of this math.
+  int num_teams[N];
+  int have_true = 0, have_false = 0;
+  int num_attempts = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX < false_margin) {
+          a[x] += 1 << y;
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+  for (int x = 0; x < 16; ++x) {
+    b = b + (1 << x);
+  }
+
+#pragma omp target teams distribute reduction(&:b) map(to: a[0:N]) map(tofrom: b, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b & a[x];
+  }
+
+  unsigned int host_b = a[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b & a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitand() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_bitand.c---------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitand operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 512
+
+int test_bitand() {
+  unsigned int a[N];
+  double false_margin = pow(exp(1), log(.5)/N); // See the 'and' operator test for
+  int errors = 0;                               // an exaplantion of this math.
+  int num_teams[N];
+  int have_true = 0, have_false = 0;
+  int num_attempts = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX < false_margin) {
+          a[x] += 1 << y;
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+  for (int x = 0; x < 16; ++x) {
+    b = b + (1 << x);
+  }
+
+#pragma omp target teams distribute
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b & a[x];
+  }
+
+  unsigned int host_b = a[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b & a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitand() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_18_optionA_full_multivariant.csv,False,failed,True,passed,,REMOVE_CLAUSE,taskloop,reduction,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_bitand.c,target_teams_distribute,reduction,REMOVE_REDUCTION,medium,#pragma omp target teams distribute reduction(&:b) defaultmap(tofrom:scalar),#pragma omp target teams distribute defaultmap(tofrom:scalar),oracle checks b == host_b,"reduction clause is removed, making the reduction variable unsafe or semantically wrong",54,test_target_teams_distribute_reduction_bitand_REMOVE_REDUCTION.c,"//===--- test_target_teams_distribute_reduction_bitand.c---------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitand operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 512
+
+int test_bitand() {
+  unsigned int a[N];
+  double false_margin = pow(exp(1), log(.5)/N); // See the 'and' operator test for
+  int errors = 0;                               // an exaplantion of this math.
+  int num_teams[N];
+  int num_attempts = 0;
+  int have_true = 0, have_false = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX < false_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+  for (int x = 0; x < 16; ++x) {
+    b = b + (1 << x);
+  }
+
+#pragma omp target teams distribute reduction(&:b) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b & a[x];
+  }
+
+  unsigned int host_b = a[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b & a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitand() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_bitand.c---------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitand operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 512
+
+int test_bitand() {
+  unsigned int a[N];
+  double false_margin = pow(exp(1), log(.5)/N); // See the 'and' operator test for
+  int errors = 0;                               // an exaplantion of this math.
+  int num_teams[N];
+  int num_attempts = 0;
+  int have_true = 0, have_false = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX < false_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+  for (int x = 0; x < 16; ++x) {
+    b = b + (1 << x);
+  }
+
+#pragma omp target teams distribute defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b & a[x];
+  }
+
+  unsigned int host_b = a[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b & a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitand() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,REMOVE_CLAUSE,taskloop,reduction,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_bitor.c,target_teams_distribute,loop_body,BODY_BITOR_TO_BITAND,high,b = b | a[x];,b = b & a[x];,oracle checks b == host_b,loop body updates reduction variable using the wrong operator,55,test_target_teams_distribute_reduction_bitor_BODY_BITOR_TO_BITAND.c,"//===--- test_target_teams_distribute_reduction_bitor.c----------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 1024
+
+int test_bitor() {
+  int a[N];
+  // See the 'and' operator test for an exaplantion of this math.
+  double true_margin = pow(exp(1), log(.5)/N);
+  int errors = 0;
+  int num_teams[N];
+  int num_attempts = 0;
+  int have_true = 0, have_false = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX > true_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(|:b) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b | a[x];
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b | a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_bitor.c----------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 1024
+
+int test_bitor() {
+  int a[N];
+  // See the 'and' operator test for an exaplantion of this math.
+  double true_margin = pow(exp(1), log(.5)/N);
+  int errors = 0;
+  int num_teams[N];
+  int num_attempts = 0;
+  int have_true = 0, have_false = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX > true_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(|:b) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b & a[x];
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b | a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,CHANGE_ASSIGNMENT,target_mapping,general_code,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_bitor.c,target_teams_distribute,loop_body,BODY_BITOR_TO_BITAND,high,b = b | a[x];,b = b & a[x];,oracle checks b == host_b,loop reduction update expression uses wrong operator,55,test_target_teams_distribute_reduction_bitor_BODY_BITOR_TO_BITAND.c,"//===--- test_target_teams_distribute_reduction_bitor.c----------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 2014
+
+int test_bitor() {
+  int a[N];
+  // See the 'and' operator test for an exaplantion of this math.
+  double true_margin = pow(exp(1), log(.5)/N);
+  int errors = 0;
+  int num_teams[N];
+  int have_true = 0, have_false = 0;
+  int num_attempts = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX > true_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(|:b) map(to: a[0:N]) map(tofrom: b) map(from: num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b | a[x];
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b | a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_bitor.c----------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 2014
+
+int test_bitor() {
+  int a[N];
+  // See the 'and' operator test for an exaplantion of this math.
+  double true_margin = pow(exp(1), log(.5)/N);
+  int errors = 0;
+  int num_teams[N];
+  int have_true = 0, have_false = 0;
+  int num_attempts = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX > true_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(|:b) map(to: a[0:N]) map(tofrom: b) map(from: num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b & a[x];
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b | a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_18_optionA_full_multivariant.csv,False,failed,True,passed,,CHANGE_ASSIGNMENT,target_mapping,general_code,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_bitor.c,target_teams_distribute,reduction,REDUCTION_BITOR_TO_BITAND,high,#pragma omp target teams distribute reduction(|:b) defaultmap(tofrom:scalar),#pragma omp target teams distribute reduction(&:b) defaultmap(tofrom:scalar),oracle checks b == host_b,target teams distribute reduction operator is changed,52,test_target_teams_distribute_reduction_bitor_REDUCTION_BITOR_TO_BITAND.c,"//===--- test_target_teams_distribute_reduction_bitor.c----------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 1024
+
+int test_bitor() {
+  int a[N];
+  // See the 'and' operator test for an exaplantion of this math.
+  double true_margin = pow(exp(1), log(.5)/N);
+  int errors = 0;
+  int num_teams[N];
+  int num_attempts = 0;
+  int have_true = 0, have_false = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX > true_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(|:b) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b | a[x];
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b | a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_bitor.c----------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 1024
+
+int test_bitor() {
+  int a[N];
+  // See the 'and' operator test for an exaplantion of this math.
+  double true_margin = pow(exp(1), log(.5)/N);
+  int errors = 0;
+  int num_teams[N];
+  int num_attempts = 0;
+  int have_true = 0, have_false = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX > true_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(&:b) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b | a[x];
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b | a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,CHANGE_OPERATOR,target_mapping,mapping,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_bitor.c,target_teams_distribute,reduction,REDUCTION_BITOR_TO_BITAND,high,#pragma omp target teams distribute reduction(|:b) map(to: a[0:N]) map(tofrom: b) map(from: num_teams[0:N]),#pragma omp target teams distribute reduction(&:b) map(to: a[0:N]) map(tofrom: b) map(from: num_teams[0:N]),oracle checks b == host_b,reduction operator changes to wrong operator,52,test_target_teams_distribute_reduction_bitor_REDUCTION_BITOR_TO_BITAND.c,"//===--- test_target_teams_distribute_reduction_bitor.c----------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 2014
+
+int test_bitor() {
+  int a[N];
+  // See the 'and' operator test for an exaplantion of this math.
+  double true_margin = pow(exp(1), log(.5)/N);
+  int errors = 0;
+  int num_teams[N];
+  int have_true = 0, have_false = 0;
+  int num_attempts = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX > true_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(|:b) map(to: a[0:N]) map(tofrom: b) map(from: num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b | a[x];
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b | a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_bitor.c----------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 2014
+
+int test_bitor() {
+  int a[N];
+  // See the 'and' operator test for an exaplantion of this math.
+  double true_margin = pow(exp(1), log(.5)/N);
+  int errors = 0;
+  int num_teams[N];
+  int have_true = 0, have_false = 0;
+  int num_attempts = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX > true_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(&:b) map(to: a[0:N]) map(tofrom: b) map(from: num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b | a[x];
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b | a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_18_optionA_full_multivariant.csv,False,failed,True,passed,,CHANGE_OPERATOR,target_mapping,mapping,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_bitor.c,target_teams_distribute,reduction,REMOVE_REDUCTION,medium,#pragma omp target teams distribute reduction(|:b) map(to: a[0:N]) map(tofrom: b) map(from: num_teams[0:N]),#pragma omp target teams distribute,oracle checks b == host_b,"reduction clause is removed, making shared reduction variable unsafe",52,test_target_teams_distribute_reduction_bitor_REMOVE_REDUCTION.c,"//===--- test_target_teams_distribute_reduction_bitor.c----------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 2014
+
+int test_bitor() {
+  int a[N];
+  // See the 'and' operator test for an exaplantion of this math.
+  double true_margin = pow(exp(1), log(.5)/N);
+  int errors = 0;
+  int num_teams[N];
+  int have_true = 0, have_false = 0;
+  int num_attempts = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX > true_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(|:b) map(to: a[0:N]) map(tofrom: b) map(from: num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b | a[x];
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b | a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_bitor.c----------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 2014
+
+int test_bitor() {
+  int a[N];
+  // See the 'and' operator test for an exaplantion of this math.
+  double true_margin = pow(exp(1), log(.5)/N);
+  int errors = 0;
+  int num_teams[N];
+  int have_true = 0, have_false = 0;
+  int num_attempts = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX > true_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b | a[x];
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b | a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_18_optionA_full_multivariant.csv,False,failed,True,passed,,REMOVE_CLAUSE,taskloop,reduction,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_bitor.c,target_teams_distribute,reduction,REMOVE_REDUCTION,medium,#pragma omp target teams distribute reduction(|:b) defaultmap(tofrom:scalar),#pragma omp target teams distribute defaultmap(tofrom:scalar),oracle checks b == host_b,"reduction clause is removed, making the reduction variable unsafe or semantically wrong",52,test_target_teams_distribute_reduction_bitor_REMOVE_REDUCTION.c,"//===--- test_target_teams_distribute_reduction_bitor.c----------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 1024
+
+int test_bitor() {
+  int a[N];
+  // See the 'and' operator test for an exaplantion of this math.
+  double true_margin = pow(exp(1), log(.5)/N);
+  int errors = 0;
+  int num_teams[N];
+  int num_attempts = 0;
+  int have_true = 0, have_false = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX > true_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(|:b) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b | a[x];
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b | a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_bitor.c----------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+#define THRESHOLD 1024
+
+int test_bitor() {
+  int a[N];
+  // See the 'and' operator test for an exaplantion of this math.
+  double true_margin = pow(exp(1), log(.5)/N);
+  int errors = 0;
+  int num_teams[N];
+  int num_attempts = 0;
+  int have_true = 0, have_false = 0;
+  srand(1);
+
+  while ((!have_true || !have_false) && (num_attempts < THRESHOLD)) {
+    have_true = 0;
+    have_false = 0;
+    for (int x = 0; x < N; ++x) {
+      for (int y = 0; y < 16; ++y) {
+        if (rand() / (double) RAND_MAX > true_margin) {
+          a[x] += (1 << y);
+          have_true = 1;
+        } else {
+          have_false = 1;
+        }
+      }
+      num_teams[x] = -x;
+    }
+    num_attempts++;
+  }
+
+  OMPVV_WARNING_IF(!have_true, ""No true bits were generated to test"");
+  OMPVV_WARNING_IF(!have_false, ""No false bits were generated to test"");
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = b | a[x];
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = host_b | a[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,REMOVE_CLAUSE,taskloop,reduction,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_bitxor.c,target_teams_distribute,loop_body,BODY_BITXOR_TO_BITOR,high,b = (b ^ a[x]);,b = (b | a[x]);,oracle checks b == host_b,loop body updates reduction variable using the wrong operator,35,test_target_teams_distribute_reduction_bitxor_BODY_BITXOR_TO_BITOR.c,"//===--- test_target_teams_distribute_reduction_bitxor.c----------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitxor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_bitxor() {
+  unsigned int a[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (unsigned int) rand() / (double) (RAND_MAX / 2);
+    num_teams[x] = -x;
+  }
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(^:b) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = (b ^ a[x]);
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = (host_b ^ a[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitxor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_bitxor.c----------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitxor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_bitxor() {
+  unsigned int a[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (unsigned int) rand() / (double) (RAND_MAX / 2);
+    num_teams[x] = -x;
+  }
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(^:b) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = (b | a[x]);
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = (host_b ^ a[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitxor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,CHANGE_ASSIGNMENT,target_mapping,general_code,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_bitxor.c,target_teams_distribute,loop_body,BODY_BITXOR_TO_BITOR,high,b = (b ^ a[x]);,b = (b | a[x]);,oracle checks b == host_b,loop reduction update expression uses wrong operator,35,test_target_teams_distribute_reduction_bitxor_BODY_BITXOR_TO_BITOR.c,"//===--- test_target_teams_distribute_reduction_bitxor.c---------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitxor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_bitxor() {
+  unsigned int a[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (unsigned int) rand() / (double) (RAND_MAX / 2);
+    num_teams[x] = -x;
+  }
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(^:b) map(to: a[0:N]) map(tofrom: b, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = (b ^ a[x]);
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = (host_b ^ a[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitxor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_bitxor.c---------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitxor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_bitxor() {
+  unsigned int a[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (unsigned int) rand() / (double) (RAND_MAX / 2);
+    num_teams[x] = -x;
+  }
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(^:b) map(to: a[0:N]) map(tofrom: b, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = (b | a[x]);
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = (host_b ^ a[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitxor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_18_optionA_full_multivariant.csv,False,failed,True,passed,,CHANGE_ASSIGNMENT,target_mapping,general_code,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_bitxor.c,target_teams_distribute,reduction,REDUCTION_BITXOR_TO_BITOR,high,"#pragma omp target teams distribute reduction(^:b) map(to: a[0:N]) map(tofrom: b, num_teams[0:N])","#pragma omp target teams distribute reduction(|:b) map(to: a[0:N]) map(tofrom: b, num_teams[0:N])",oracle checks b == host_b,reduction operator changes to wrong operator,32,test_target_teams_distribute_reduction_bitxor_REDUCTION_BITXOR_TO_BITOR.c,"//===--- test_target_teams_distribute_reduction_bitxor.c---------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitxor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_bitxor() {
+  unsigned int a[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (unsigned int) rand() / (double) (RAND_MAX / 2);
+    num_teams[x] = -x;
+  }
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(^:b) map(to: a[0:N]) map(tofrom: b, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = (b ^ a[x]);
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = (host_b ^ a[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitxor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_bitxor.c---------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitxor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_bitxor() {
+  unsigned int a[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (unsigned int) rand() / (double) (RAND_MAX / 2);
+    num_teams[x] = -x;
+  }
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(|:b) map(to: a[0:N]) map(tofrom: b, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = (b ^ a[x]);
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = (host_b ^ a[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitxor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_18_optionA_full_multivariant.csv,False,failed,True,passed,,CHANGE_OPERATOR,target_mapping,mapping,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_bitxor.c,target_teams_distribute,reduction,REDUCTION_BITXOR_TO_BITOR,high,#pragma omp target teams distribute reduction(^:b) defaultmap(tofrom:scalar),#pragma omp target teams distribute reduction(|:b) defaultmap(tofrom:scalar),oracle checks b == host_b,target teams distribute reduction operator is changed,32,test_target_teams_distribute_reduction_bitxor_REDUCTION_BITXOR_TO_BITOR.c,"//===--- test_target_teams_distribute_reduction_bitxor.c----------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitxor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_bitxor() {
+  unsigned int a[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (unsigned int) rand() / (double) (RAND_MAX / 2);
+    num_teams[x] = -x;
+  }
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(^:b) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = (b ^ a[x]);
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = (host_b ^ a[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitxor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_bitxor.c----------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the bitxor operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_bitxor() {
+  unsigned int a[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (unsigned int) rand() / (double) (RAND_MAX / 2);
+    num_teams[x] = -x;
+  }
+
+  unsigned int b = 0;
+
+#pragma omp target teams distribute reduction(|:b) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    b = (b ^ a[x]);
+  }
+
+  unsigned int host_b = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_b = (host_b ^ a[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, b != host_b);
+  OMPVV_ERROR_IF(host_b != b, ""Bit on device is %d but expected bit from host is %d."", b, host_b);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_bitxor() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,CHANGE_OPERATOR,target_mapping,mapping,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_max.c,target_teams_distribute,loop_body,BODY_FMAX_TO_FMIN,high,"result = fmax(a[x] + b[x], result);","result = fmin(a[x] + b[x], result);",oracle checks result == host_max,loop reduction update expression uses wrong operator,36,test_target_teams_distribute_reduction_max_BODY_FMAX_TO_FMIN.c,"//===--- test_target_teams_distribute_reduction_max.c------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the max operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_max() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double)(RAND_MAX / 100);
+    b[x] = (int) rand() / (double)(RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = 0;
+
+#pragma omp target teams distribute reduction(max:result) map(to: a[0:N], b[0:N]) map(tofrom: result, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    result = fmax(a[x] + b[x], result);
+    num_teams[x] = omp_get_num_teams();
+  }
+
+  int host_max = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_max = fmax(host_max, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, result != host_max);
+  OMPVV_ERROR_IF(host_max != result, ""Max on device is %d but expected max from host is %d."", result, host_max);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_max() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_max.c------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the max operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_max() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double)(RAND_MAX / 100);
+    b[x] = (int) rand() / (double)(RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = 0;
+
+#pragma omp target teams distribute reduction(max:result) map(to: a[0:N], b[0:N]) map(tofrom: result, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    result = fmin(a[x] + b[x], result);
+    num_teams[x] = omp_get_num_teams();
+  }
+
+  int host_max = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_max = fmax(host_max, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, result != host_max);
+  OMPVV_ERROR_IF(host_max != result, ""Max on device is %d but expected max from host is %d."", result, host_max);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_max() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_18_optionA_full_multivariant.csv,False,failed,True,passed,,CHANGE_ASSIGNMENT,target_mapping,general_code,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_max.c,target_teams_distribute,loop_body,BODY_FMAX_TO_FMIN,high,"result = fmax(a[x] + b[x], result);","result = fmin(a[x] + b[x], result);",oracle checks result == host_max,loop body updates reduction variable using the wrong operator,36,test_target_teams_distribute_reduction_max_BODY_FMAX_TO_FMIN.c,"//===--- test_target_teams_distribute_reduction_max.c------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the max operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_max() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double)(RAND_MAX / 100);
+    b[x] = (int) rand() / (double)(RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = 0;
+
+#pragma omp target teams distribute reduction(max:result) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    result = fmax(a[x] + b[x], result);
+    num_teams[x] = omp_get_num_teams();
+  }
+
+  int host_max = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_max = fmax(host_max, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, result != host_max);
+  OMPVV_ERROR_IF(host_max != result, ""Max on device is %d but expected max from host is %d."", result, host_max);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_max() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_max.c------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the max operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_max() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double)(RAND_MAX / 100);
+    b[x] = (int) rand() / (double)(RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = 0;
+
+#pragma omp target teams distribute reduction(max:result) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    result = fmin(a[x] + b[x], result);
+    num_teams[x] = omp_get_num_teams();
+  }
+
+  int host_max = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_max = fmax(host_max, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, result != host_max);
+  OMPVV_ERROR_IF(host_max != result, ""Max on device is %d but expected max from host is %d."", result, host_max);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_max() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,CHANGE_ASSIGNMENT,target_mapping,general_code,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_max.c,target_teams_distribute,reduction,REDUCTION_MAX_TO_MIN,high,#pragma omp target teams distribute reduction(max:result) defaultmap(tofrom:scalar),#pragma omp target teams distribute reduction(min:result) defaultmap(tofrom:scalar),oracle checks result == host_max,target teams distribute reduction operator is changed,34,test_target_teams_distribute_reduction_max_REDUCTION_MAX_TO_MIN.c,"//===--- test_target_teams_distribute_reduction_max.c------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the max operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_max() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double)(RAND_MAX / 100);
+    b[x] = (int) rand() / (double)(RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = 0;
+
+#pragma omp target teams distribute reduction(max:result) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    result = fmax(a[x] + b[x], result);
+    num_teams[x] = omp_get_num_teams();
+  }
+
+  int host_max = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_max = fmax(host_max, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, result != host_max);
+  OMPVV_ERROR_IF(host_max != result, ""Max on device is %d but expected max from host is %d."", result, host_max);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_max() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_max.c------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the max operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_max() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double)(RAND_MAX / 100);
+    b[x] = (int) rand() / (double)(RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = 0;
+
+#pragma omp target teams distribute reduction(min:result) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    result = fmax(a[x] + b[x], result);
+    num_teams[x] = omp_get_num_teams();
+  }
+
+  int host_max = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_max = fmax(host_max, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, result != host_max);
+  OMPVV_ERROR_IF(host_max != result, ""Max on device is %d but expected max from host is %d."", result, host_max);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_max() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,CHANGE_OPERATOR,target_mapping,mapping,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_max.c,target_teams_distribute,reduction,REDUCTION_MAX_TO_MIN,high,"#pragma omp target teams distribute reduction(max:result) map(to: a[0:N], b[0:N]) map(tofrom: result, num_teams[0:N])","#pragma omp target teams distribute reduction(min:result) map(to: a[0:N], b[0:N]) map(tofrom: result, num_teams[0:N])",oracle checks result == host_max,reduction operator changes to wrong operator,34,test_target_teams_distribute_reduction_max_REDUCTION_MAX_TO_MIN.c,"//===--- test_target_teams_distribute_reduction_max.c------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the max operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_max() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double)(RAND_MAX / 100);
+    b[x] = (int) rand() / (double)(RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = 0;
+
+#pragma omp target teams distribute reduction(max:result) map(to: a[0:N], b[0:N]) map(tofrom: result, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    result = fmax(a[x] + b[x], result);
+    num_teams[x] = omp_get_num_teams();
+  }
+
+  int host_max = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_max = fmax(host_max, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, result != host_max);
+  OMPVV_ERROR_IF(host_max != result, ""Max on device is %d but expected max from host is %d."", result, host_max);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_max() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_max.c------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the max operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_max() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double)(RAND_MAX / 100);
+    b[x] = (int) rand() / (double)(RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = 0;
+
+#pragma omp target teams distribute reduction(min:result) map(to: a[0:N], b[0:N]) map(tofrom: result, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    result = fmax(a[x] + b[x], result);
+    num_teams[x] = omp_get_num_teams();
+  }
+
+  int host_max = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_max = fmax(host_max, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, result != host_max);
+  OMPVV_ERROR_IF(host_max != result, ""Max on device is %d but expected max from host is %d."", result, host_max);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_max() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_18_optionA_full_multivariant.csv,False,failed,True,passed,,CHANGE_OPERATOR,target_mapping,mapping,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_max.c,target_teams_distribute,reduction,REMOVE_REDUCTION,medium,#pragma omp target teams distribute reduction(max:result) defaultmap(tofrom:scalar),#pragma omp target teams distribute defaultmap(tofrom:scalar),oracle checks result == host_max,"reduction clause is removed, making the reduction variable unsafe or semantically wrong",34,test_target_teams_distribute_reduction_max_REMOVE_REDUCTION.c,"//===--- test_target_teams_distribute_reduction_max.c------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the max operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_max() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double)(RAND_MAX / 100);
+    b[x] = (int) rand() / (double)(RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = 0;
+
+#pragma omp target teams distribute reduction(max:result) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    result = fmax(a[x] + b[x], result);
+    num_teams[x] = omp_get_num_teams();
+  }
+
+  int host_max = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_max = fmax(host_max, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, result != host_max);
+  OMPVV_ERROR_IF(host_max != result, ""Max on device is %d but expected max from host is %d."", result, host_max);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_max() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_max.c------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the max operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_max() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double)(RAND_MAX / 100);
+    b[x] = (int) rand() / (double)(RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = 0;
+
+#pragma omp target teams distribute defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    result = fmax(a[x] + b[x], result);
+    num_teams[x] = omp_get_num_teams();
+  }
+
+  int host_max = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_max = fmax(host_max, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, result != host_max);
+  OMPVV_ERROR_IF(host_max != result, ""Max on device is %d but expected max from host is %d."", result, host_max);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_max() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,REMOVE_CLAUSE,taskloop,reduction,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_max.c,target_teams_distribute,reduction,REMOVE_REDUCTION,medium,"#pragma omp target teams distribute reduction(max:result) map(to: a[0:N], b[0:N]) map(tofrom: result, num_teams[0:N])",#pragma omp target teams distribute,oracle checks result == host_max,"reduction clause is removed, making shared reduction variable unsafe",34,test_target_teams_distribute_reduction_max_REMOVE_REDUCTION.c,"//===--- test_target_teams_distribute_reduction_max.c------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the max operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_max() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double)(RAND_MAX / 100);
+    b[x] = (int) rand() / (double)(RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = 0;
+
+#pragma omp target teams distribute reduction(max:result) map(to: a[0:N], b[0:N]) map(tofrom: result, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    result = fmax(a[x] + b[x], result);
+    num_teams[x] = omp_get_num_teams();
+  }
+
+  int host_max = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_max = fmax(host_max, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, result != host_max);
+  OMPVV_ERROR_IF(host_max != result, ""Max on device is %d but expected max from host is %d."", result, host_max);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_max() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_max.c------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the max operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_max() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double)(RAND_MAX / 100);
+    b[x] = (int) rand() / (double)(RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = 0;
+
+#pragma omp target teams distribute
+  for (int x = 0; x < N; ++x) {
+    result = fmax(a[x] + b[x], result);
+    num_teams[x] = omp_get_num_teams();
+  }
+
+  int host_max = 0;
+
+  for (int x = 0; x < N; ++x) {
+    host_max = fmax(host_max, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, result != host_max);
+  OMPVV_ERROR_IF(host_max != result, ""Max on device is %d but expected max from host is %d."", result, host_max);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_max() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_18_optionA_full_multivariant.csv,False,failed,True,passed,,REMOVE_CLAUSE,taskloop,reduction,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_min.c,target_teams_distribute,loop_body,BODY_FMIN_TO_FMAX,high,"result = fmin(result, a[x] + b[x]);","result = fmax(result, a[x] + b[x]);",oracle checks result == host_min,loop body updates reduction variable using the wrong operator,37,test_target_teams_distribute_reduction_min_BODY_FMIN_TO_FMAX.c,"//===--- test_target_teams_distribute_reduction_min.c----------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the min operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_min() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double) (RAND_MAX / 100);
+    b[x] = (int) rand() / (double) (RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = a[0] + b[0];
+
+#pragma omp target teams distribute reduction(min:result) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    result = fmin(result, a[x] + b[x]);
+  }
+
+  int host_min = a[0] + b[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_min = fmin(host_min, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_min != result);
+  OMPVV_ERROR_IF(host_min != result, ""Min on device is %d but expected min from host is %d."", result, host_min);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_min() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_min.c----------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the min operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_min() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double) (RAND_MAX / 100);
+    b[x] = (int) rand() / (double) (RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = a[0] + b[0];
+
+#pragma omp target teams distribute reduction(min:result) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    result = fmax(result, a[x] + b[x]);
+  }
+
+  int host_min = a[0] + b[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_min = fmin(host_min, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_min != result);
+  OMPVV_ERROR_IF(host_min != result, ""Min on device is %d but expected min from host is %d."", result, host_min);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_min() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,CHANGE_ASSIGNMENT,target_mapping,general_code,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_min.c,target_teams_distribute,loop_body,BODY_FMIN_TO_FMAX,high,"result = fmin(result, a[x] + b[x]);","result = fmax(result, a[x] + b[x]);",oracle checks result == host_min,loop reduction update expression uses wrong operator,37,test_target_teams_distribute_reduction_min_BODY_FMIN_TO_FMAX.c,"//===--- test_target_teams_distribute_reduction_min.c-------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the min operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_min() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double) (RAND_MAX / 100);
+    b[x] = (int) rand() / (double) (RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = a[0] + b[0];
+
+#pragma omp target teams distribute reduction(min:result) map(to: a[0:N], b[0:N]) map(tofrom: result, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    result = fmin(result, a[x] + b[x]);
+  }
+
+  int host_min = a[0] + b[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_min = fmin(host_min, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_min != result);
+  OMPVV_ERROR_IF(host_min != result, ""Min on device is %d but expected min from host is %d."", result, host_min);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_min() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_min.c-------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the min operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_min() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double) (RAND_MAX / 100);
+    b[x] = (int) rand() / (double) (RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = a[0] + b[0];
+
+#pragma omp target teams distribute reduction(min:result) map(to: a[0:N], b[0:N]) map(tofrom: result, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    result = fmax(result, a[x] + b[x]);
+  }
+
+  int host_min = a[0] + b[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_min = fmin(host_min, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_min != result);
+  OMPVV_ERROR_IF(host_min != result, ""Min on device is %d but expected min from host is %d."", result, host_min);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_min() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_18_optionA_full_multivariant.csv,False,failed,True,passed,,CHANGE_ASSIGNMENT,target_mapping,general_code,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_min.c,target_teams_distribute,reduction,REDUCTION_MIN_TO_MAX,high,#pragma omp target teams distribute reduction(min:result) defaultmap(tofrom:scalar),#pragma omp target teams distribute reduction(max:result) defaultmap(tofrom:scalar),oracle checks result == host_min,target teams distribute reduction operator is changed,34,test_target_teams_distribute_reduction_min_REDUCTION_MIN_TO_MAX.c,"//===--- test_target_teams_distribute_reduction_min.c----------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the min operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_min() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double) (RAND_MAX / 100);
+    b[x] = (int) rand() / (double) (RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = a[0] + b[0];
+
+#pragma omp target teams distribute reduction(min:result) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    result = fmin(result, a[x] + b[x]);
+  }
+
+  int host_min = a[0] + b[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_min = fmin(host_min, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_min != result);
+  OMPVV_ERROR_IF(host_min != result, ""Min on device is %d but expected min from host is %d."", result, host_min);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_min() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_min.c----------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the min operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_min() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double) (RAND_MAX / 100);
+    b[x] = (int) rand() / (double) (RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = a[0] + b[0];
+
+#pragma omp target teams distribute reduction(max:result) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    result = fmin(result, a[x] + b[x]);
+  }
+
+  int host_min = a[0] + b[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_min = fmin(host_min, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_min != result);
+  OMPVV_ERROR_IF(host_min != result, ""Min on device is %d but expected min from host is %d."", result, host_min);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_min() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,CHANGE_OPERATOR,target_mapping,mapping,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_min.c,target_teams_distribute,reduction,REDUCTION_MIN_TO_MAX,high,"#pragma omp target teams distribute reduction(min:result) map(to: a[0:N], b[0:N]) map(tofrom: result, num_teams[0:N])","#pragma omp target teams distribute reduction(max:result) map(to: a[0:N], b[0:N]) map(tofrom: result, num_teams[0:N])",oracle checks result == host_min,reduction operator changes to wrong operator,34,test_target_teams_distribute_reduction_min_REDUCTION_MIN_TO_MAX.c,"//===--- test_target_teams_distribute_reduction_min.c-------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the min operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_min() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double) (RAND_MAX / 100);
+    b[x] = (int) rand() / (double) (RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = a[0] + b[0];
+
+#pragma omp target teams distribute reduction(min:result) map(to: a[0:N], b[0:N]) map(tofrom: result, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    result = fmin(result, a[x] + b[x]);
+  }
+
+  int host_min = a[0] + b[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_min = fmin(host_min, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_min != result);
+  OMPVV_ERROR_IF(host_min != result, ""Min on device is %d but expected min from host is %d."", result, host_min);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_min() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_min.c-------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the min operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_min() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double) (RAND_MAX / 100);
+    b[x] = (int) rand() / (double) (RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = a[0] + b[0];
+
+#pragma omp target teams distribute reduction(max:result) map(to: a[0:N], b[0:N]) map(tofrom: result, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    result = fmin(result, a[x] + b[x]);
+  }
+
+  int host_min = a[0] + b[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_min = fmin(host_min, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_min != result);
+  OMPVV_ERROR_IF(host_min != result, ""Min on device is %d but expected min from host is %d."", result, host_min);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_min() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_18_optionA_full_multivariant.csv,False,failed,True,passed,,CHANGE_OPERATOR,target_mapping,mapping,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_min.c,target_teams_distribute,reduction,REMOVE_REDUCTION,medium,#pragma omp target teams distribute reduction(min:result) defaultmap(tofrom:scalar),#pragma omp target teams distribute defaultmap(tofrom:scalar),oracle checks result == host_min,"reduction clause is removed, making the reduction variable unsafe or semantically wrong",34,test_target_teams_distribute_reduction_min_REMOVE_REDUCTION.c,"//===--- test_target_teams_distribute_reduction_min.c----------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the min operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_min() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double) (RAND_MAX / 100);
+    b[x] = (int) rand() / (double) (RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = a[0] + b[0];
+
+#pragma omp target teams distribute reduction(min:result) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    result = fmin(result, a[x] + b[x]);
+  }
+
+  int host_min = a[0] + b[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_min = fmin(host_min, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_min != result);
+  OMPVV_ERROR_IF(host_min != result, ""Min on device is %d but expected min from host is %d."", result, host_min);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_min() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_min.c----------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the min operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_min() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double) (RAND_MAX / 100);
+    b[x] = (int) rand() / (double) (RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = a[0] + b[0];
+
+#pragma omp target teams distribute defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    result = fmin(result, a[x] + b[x]);
+  }
+
+  int host_min = a[0] + b[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_min = fmin(host_min, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_min != result);
+  OMPVV_ERROR_IF(host_min != result, ""Min on device is %d but expected min from host is %d."", result, host_min);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_min() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,REMOVE_CLAUSE,taskloop,reduction,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_min.c,target_teams_distribute,reduction,REMOVE_REDUCTION,medium,"#pragma omp target teams distribute reduction(min:result) map(to: a[0:N], b[0:N]) map(tofrom: result, num_teams[0:N])",#pragma omp target teams distribute,oracle checks result == host_min,"reduction clause is removed, making shared reduction variable unsafe",34,test_target_teams_distribute_reduction_min_REMOVE_REDUCTION.c,"//===--- test_target_teams_distribute_reduction_min.c-------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the min operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_min() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double) (RAND_MAX / 100);
+    b[x] = (int) rand() / (double) (RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = a[0] + b[0];
+
+#pragma omp target teams distribute reduction(min:result) map(to: a[0:N], b[0:N]) map(tofrom: result, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    result = fmin(result, a[x] + b[x]);
+  }
+
+  int host_min = a[0] + b[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_min = fmin(host_min, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_min != result);
+  OMPVV_ERROR_IF(host_min != result, ""Min on device is %d but expected min from host is %d."", result, host_min);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_min() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_min.c-------------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the min operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_min() {
+  int a[N];
+  int b[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = (int) rand() / (double) (RAND_MAX / 100);
+    b[x] = (int) rand() / (double) (RAND_MAX / 100);
+    num_teams[x] = -x;
+  }
+
+  int result = a[0] + b[0];
+
+#pragma omp target teams distribute
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    result = fmin(result, a[x] + b[x]);
+  }
+
+  int host_min = a[0] + b[0];
+
+  for (int x = 0; x < N; ++x) {
+    host_min = fmin(host_min, a[x] + b[x]);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_min != result);
+  OMPVV_ERROR_IF(host_min != result, ""Min on device is %d but expected min from host is %d."", result, host_min);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_min() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_18_optionA_full_multivariant.csv,False,failed,True,passed,,REMOVE_CLAUSE,taskloop,reduction,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_multiply.c,target_teams_distribute,loop_body,BODY_MUL_TO_ADD,high,result *= a[x + y];,result += a[x + y];,oracle checks host_result == result for each 16-element chunk,loop body updates reduction variable using the wrong operator,37,test_target_teams_distribute_reduction_multiply_BODY_MUL_TO_ADD.c,"//===--- test_target_teams_distribute_reduction_multiply.c-------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the multiply operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_multiply() {
+  int a[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1 + (int) rand() / (double) RAND_MAX;
+    num_teams[x] = -x;
+  }
+
+  int result = 1;
+  int host_result;
+
+  for (int x = 0; x < N; x = x + 16) {
+    result = 1;
+#pragma omp target teams distribute reduction(*:result) defaultmap(tofrom:scalar)
+    for (int y = 0; y < 16; ++y) {
+      result *= a[x + y];
+      num_teams[x + y] = omp_get_num_teams();
+    }
+    host_result = 1;
+    for (int y = 0; y < 16; ++y) {
+      host_result *= a[x + y];
+    }
+    OMPVV_TEST_AND_SET_VERBOSE(errors, host_result != result);
+    OMPVV_INFOMSG_IF(host_result != result, ""Device result is %d and host result is %d."", result, host_result);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_multiply() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_multiply.c-------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the multiply operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_multiply() {
+  int a[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1 + (int) rand() / (double) RAND_MAX;
+    num_teams[x] = -x;
+  }
+
+  int result = 1;
+  int host_result;
+
+  for (int x = 0; x < N; x = x + 16) {
+    result = 1;
+#pragma omp target teams distribute reduction(*:result) defaultmap(tofrom:scalar)
+    for (int y = 0; y < 16; ++y) {
+      result += a[x + y];
+      num_teams[x + y] = omp_get_num_teams();
+    }
+    host_result = 1;
+    for (int y = 0; y < 16; ++y) {
+      host_result *= a[x + y];
+    }
+    OMPVV_TEST_AND_SET_VERBOSE(errors, host_result != result);
+    OMPVV_INFOMSG_IF(host_result != result, ""Device result is %d and host result is %d."", result, host_result);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_multiply() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,CHANGE_ASSIGNMENT,target_mapping,general_code,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_multiply.c,target_teams_distribute,loop_body,BODY_MUL_TO_ADD,high,result *= a[x + y];,result += a[x + y];,oracle checks host_result == result,loop body adds instead of multiplying,37,test_target_teams_distribute_reduction_multiply_BODY_MUL_TO_ADD.c,"//===--- test_target_teams_distribute_reduction_multiply.c-------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the multiply operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_multiply() {
+  int a[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1 + (int) rand() / (double) RAND_MAX;
+    num_teams[x] = -x;
+  }
+
+  int result = 1;
+  int host_result;
+
+  for (int x = 0; x < N; x = x + 16) {
+    result = 1;
+#pragma omp target teams distribute reduction(*:result) map(to: a[0:N]) map(tofrom: result, num_teams[0:N])
+    for (int y = 0; y < 16; ++y) {
+      result *= a[x + y];
+      num_teams[x + y] = omp_get_num_teams();
+    }
+    host_result = 1;
+    for (int y = 0; y < 16; ++y) {
+      host_result *= a[x + y];
+    }
+    OMPVV_TEST_AND_SET_VERBOSE(errors, host_result != result);
+    OMPVV_INFOMSG_IF(host_result != result, ""Device result is %d and host result is %d."", result, host_result);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_multiply() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_multiply.c-------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the multiply operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_multiply() {
+  int a[N];
+  int errors = 0;
+  int num_teams[N];
+  srand(1);
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1 + (int) rand() / (double) RAND_MAX;
+    num_teams[x] = -x;
+  }
+
+  int result = 1;
+  int host_result;
+
+  for (int x = 0; x < N; x = x + 16) {
+    result = 1;
+#pragma omp target teams distribute reduction(*:result) map(to: a[0:N]) map(tofrom: result, num_teams[0:N])
+    for (int y = 0; y < 16; ++y) {
+      result += a[x + y];
+      num_teams[x + y] = omp_get_num_teams();
+    }
+    host_result = 1;
+    for (int y = 0; y < 16; ++y) {
+      host_result *= a[x + y];
+    }
+    OMPVV_TEST_AND_SET_VERBOSE(errors, host_result != result);
+    OMPVV_INFOMSG_IF(host_result != result, ""Device result is %d and host result is %d."", result, host_result);
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_multiply() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_19_optionA_full_multivariant.csv,False,failed,True,passed,,CHANGE_ASSIGNMENT,target_mapping,general_code,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_subtract.c,target_teams_distribute,loop_body,BODY_SUB_TO_ADD,high,total -= a[x] + b[x];,total += a[x] + b[x];,oracle checks host_total == total,loop body adds instead of subtracting,36,test_target_teams_distribute_reduction_subtract_BODY_SUB_TO_ADD.c,"//===--- test_target_teams_distribute_reduction_subtract.c-------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the subtract operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_subtraction() {
+  int a[N];
+  int b[N];
+  int total = 0;
+  int host_total = 0;
+  int errors = 0;
+  int num_teams[N];
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1;
+    b[x] = x;
+    num_teams[x] = -x;
+  }
+
+#pragma omp target teams distribute reduction(-:total) map(to: a[0:N], b[0:N]) map(tofrom: total, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    total -= a[x] + b[x];
+  }
+
+  for (int x = 0; x < N; ++x) {
+    host_total -= a[x] + b[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_total != total);
+  OMPVV_ERROR_IF(host_total != total, ""Total on device is %d but expected total from host is %d."", total, host_total);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_subtraction() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_subtract.c-------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the subtract operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_subtraction() {
+  int a[N];
+  int b[N];
+  int total = 0;
+  int host_total = 0;
+  int errors = 0;
+  int num_teams[N];
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1;
+    b[x] = x;
+    num_teams[x] = -x;
+  }
+
+#pragma omp target teams distribute reduction(-:total) map(to: a[0:N], b[0:N]) map(tofrom: total, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    total += a[x] + b[x];
+  }
+
+  for (int x = 0; x < N; ++x) {
+    host_total -= a[x] + b[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_total != total);
+  OMPVV_ERROR_IF(host_total != total, ""Total on device is %d but expected total from host is %d."", total, host_total);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_subtraction() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_19_optionA_full_multivariant.csv,False,failed,True,passed,,CHANGE_ASSIGNMENT,target_mapping,general_code,tests/5.0/target_teams_distribute,5.0,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_subtract.c,target_teams_distribute,loop_body,BODY_SUB_TO_ADD,high,total -= a[x] + b[x];,total += a[x] + b[x];,oracle checks host_total == total,loop body updates reduction variable using the wrong operator,36,test_target_teams_distribute_reduction_subtract_BODY_SUB_TO_ADD.c,"//===--- test_target_teams_distribute_reduction_subtract.c----------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the subtract operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_subtraction() {
+  int a[N];
+  int b[N];
+  int total = 0;
+  int host_total = 0;
+  int errors = 0;
+  int num_teams[N];
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1;
+    b[x] = x;
+    num_teams[x] = -x;
+  }
+
+#pragma omp target teams distribute reduction(-:total) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    total -= a[x] + b[x];
+  }
+
+  for (int x = 0; x < N; ++x) {
+    host_total -= a[x] + b[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_total != total);
+  OMPVV_ERROR_IF(host_total != total, ""Total on device is %d but expected total from host is %d."", total, host_total);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_subtraction() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_subtract.c----------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the subtract operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_subtraction() {
+  int a[N];
+  int b[N];
+  int total = 0;
+  int host_total = 0;
+  int errors = 0;
+  int num_teams[N];
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1;
+    b[x] = x;
+    num_teams[x] = -x;
+  }
+
+#pragma omp target teams distribute reduction(-:total) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    total += a[x] + b[x];
+  }
+
+  for (int x = 0; x < N; ++x) {
+    host_total -= a[x] + b[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_total != total);
+  OMPVV_ERROR_IF(host_total != total, ""Total on device is %d but expected total from host is %d."", total, host_total);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_subtraction() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,CHANGE_ASSIGNMENT,target_mapping,general_code,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/4.5/target_teams_distribute/test_target_teams_distribute_reduction_subtract.c,target_teams_distribute,reduction,REMOVE_REDUCTION,medium,#pragma omp target teams distribute reduction(-:total) defaultmap(tofrom:scalar),#pragma omp target teams distribute defaultmap(tofrom:scalar),oracle checks host_total == total,"reduction clause is removed, making the reduction variable unsafe or semantically wrong",33,test_target_teams_distribute_reduction_subtract_REMOVE_REDUCTION.c,"//===--- test_target_teams_distribute_reduction_subtract.c----------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the subtract operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_subtraction() {
+  int a[N];
+  int b[N];
+  int total = 0;
+  int host_total = 0;
+  int errors = 0;
+  int num_teams[N];
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1;
+    b[x] = x;
+    num_teams[x] = -x;
+  }
+
+#pragma omp target teams distribute reduction(-:total) defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    total -= a[x] + b[x];
+  }
+
+  for (int x = 0; x < N; ++x) {
+    host_total -= a[x] + b[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_total != total);
+  OMPVV_ERROR_IF(host_total != total, ""Total on device is %d but expected total from host is %d."", total, host_total);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_subtraction() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_subtract.c----------------------------===//
+//
+// OpenMP API Version 4.5 Nov 2015
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the subtract operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_subtraction() {
+  int a[N];
+  int b[N];
+  int total = 0;
+  int host_total = 0;
+  int errors = 0;
+  int num_teams[N];
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1;
+    b[x] = x;
+    num_teams[x] = -x;
+  }
+
+#pragma omp target teams distribute defaultmap(tofrom:scalar)
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    total -= a[x] + b[x];
+  }
+
+  for (int x = 0; x < N; ++x) {
+    host_total -= a[x] + b[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_total != total);
+  OMPVV_ERROR_IF(host_total != total, ""Total on device is %d but expected total from host is %d."", total, host_total);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_subtraction() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_09_optionA_full_multivariant_REGENERATED.csv,False,failed,True,passed,,REMOVE_CLAUSE,taskloop,reduction,tests/4.5/target_teams_distribute,4.5,resolved,True,
+tests/5.0/target_teams_distribute/test_target_teams_distribute_reduction_subtract.c,target_teams_distribute,reduction,REMOVE_REDUCTION,medium,"#pragma omp target teams distribute reduction(-:total) map(to: a[0:N], b[0:N]) map(tofrom: total, num_teams[0:N])","#pragma omp target teams distribute map(to: a[0:N], b[0:N]) map(tofrom: total, num_teams[0:N])",oracle checks host_total == total,"reduction clause is removed, so total is updated unsafely",33,test_target_teams_distribute_reduction_subtract_REMOVE_REDUCTION.c,"//===--- test_target_teams_distribute_reduction_subtract.c-------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the subtract operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_subtraction() {
+  int a[N];
+  int b[N];
+  int total = 0;
+  int host_total = 0;
+  int errors = 0;
+  int num_teams[N];
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1;
+    b[x] = x;
+    num_teams[x] = -x;
+  }
+
+#pragma omp target teams distribute reduction(-:total) map(to: a[0:N], b[0:N]) map(tofrom: total, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    total -= a[x] + b[x];
+  }
+
+  for (int x = 0; x < N; ++x) {
+    host_total -= a[x] + b[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_total != total);
+  OMPVV_ERROR_IF(host_total != total, ""Total on device is %d but expected total from host is %d."", total, host_total);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_subtraction() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+","//===--- test_target_teams_distribute_reduction_subtract.c-------------------===//
+//
+// OpenMP API Version 5.0 Nov 2018
+//
+// This test uses the reduction clause on a target teams distribute directive,
+// testing that the variable in the reduction clause is properly reduced using
+// the subtract operator.
+//
+////===----------------------------------------------------------------------===//
+
+#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include ""ompvv.h""
+#include <math.h>
+
+#define N 1024
+
+int test_subtraction() {
+  int a[N];
+  int b[N];
+  int total = 0;
+  int host_total = 0;
+  int errors = 0;
+  int num_teams[N];
+
+  for (int x = 0; x < N; ++x) {
+    a[x] = 1;
+    b[x] = x;
+    num_teams[x] = -x;
+  }
+
+#pragma omp target teams distribute map(to: a[0:N], b[0:N]) map(tofrom: total, num_teams[0:N])
+  for (int x = 0; x < N; ++x) {
+    num_teams[x] = omp_get_num_teams();
+    total -= a[x] + b[x];
+  }
+
+  for (int x = 0; x < N; ++x) {
+    host_total -= a[x] + b[x];
+  }
+
+  for (int x = 1; x < N; ++x) {
+    OMPVV_WARNING_IF(num_teams[x - 1] != num_teams[x], ""Kernel reported differing numbers of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+  }
+  OMPVV_WARNING_IF(num_teams[0] == 1, ""Test operated with one team.  Reduction clause cannot be tested."");
+  OMPVV_WARNING_IF(num_teams[0] <= 0, ""Test reported invalid number of teams.  Validity of testing of reduction clause cannot be guaranteed."");
+
+  OMPVV_TEST_AND_SET_VERBOSE(errors, host_total != total);
+  OMPVV_ERROR_IF(host_total != total, ""Total on device is %d but expected total from host is %d."", total, host_total);
+
+  return errors;
+}
+
+int main() {
+  OMPVV_TEST_OFFLOADING;
+
+  int total_errors = 0;
+
+  OMPVV_TEST_AND_SET_VERBOSE(total_errors, test_subtraction() != 0);
+
+  OMPVV_REPORT_AND_RETURN(total_errors);
+}
+",openmp_gpu_batch_19_optionA_full_multivariant.csv,False,failed,True,passed,,REMOVE_CLAUSE,taskloop,reduction,tests/5.0/target_teams_distribute,5.0,resolved,True,

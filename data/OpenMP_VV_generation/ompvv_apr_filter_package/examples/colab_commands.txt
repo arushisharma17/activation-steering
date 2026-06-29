@@ -1,0 +1,9 @@
+!unzip -o ompvv_apr_filter_package.zip
+%cd ompvv_apr_filter_package
+!bash run_filter.sh "/content/ompvv_bugs_failing_only_taxonomy (1).csv" "/content/ompvv_final_apr_outputs"
+
+# After editing proposed_mutation_type in the review sheet:
+!bash run_filter.sh \
+  "/content/ompvv_bugs_failing_only_taxonomy (1).csv" \
+  "/content/ompvv_final_apr_outputs_reviewed" \
+  "/content/ompvv_final_apr_outputs/ompvv_unique_bug_types_needs_review.csv"
